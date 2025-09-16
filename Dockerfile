@@ -33,4 +33,4 @@ RUN python manage.py collectstatic --noinput
 EXPOSE $PORT
 
 # Run gunicorn
-CMD ["sh", "-c", "python manage.py migrate && gunicorn tvservices.wsgi:application --bind 0.0.0.0:$PORT --workers 2"]
+CMD ["sh", "-c", "python manage.py migrate && python create_superuser.py && gunicorn tvservices.wsgi:application --bind 0.0.0.0:$PORT --workers 2"]

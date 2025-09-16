@@ -33,6 +33,25 @@ if 'RAILWAY_ENVIRONMENT' in os.environ:
         '*.railway.app'
     ])
 
+# CSRF Configuration for Railway
+CSRF_TRUSTED_ORIGINS = [
+    'https://tvservices-whatsapp-production.up.railway.app',
+    'http://tvservices-whatsapp-production.up.railway.app',
+    'https://localhost:8000',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
+# Add dynamic CSRF origins from environment
+if 'RAILWAY_ENVIRONMENT' in os.environ:
+    railway_url = os.environ.get('RAILWAY_STATIC_URL', '')
+    if railway_url and railway_url not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(railway_url)
+        # Also add HTTP version
+        http_url = railway_url.replace('https://', 'http://')
+        if http_url not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(http_url)
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
