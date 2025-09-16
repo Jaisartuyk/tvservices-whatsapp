@@ -30,7 +30,7 @@ def run_notifications():
             print(f"📱 Enviando notificaciones día {days}...")
             
             result = subprocess.run([
-                sys.executable, 'manage.py', 'send_expiration_notifications', 
+                'python3', 'manage.py', 'send_expiration_notifications', 
                 '--days', str(days)
             ], capture_output=True, text=True, timeout=300)
             
