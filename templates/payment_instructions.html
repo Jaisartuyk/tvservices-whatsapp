@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Instrucciones de Pago - TV Services{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Instrucciones de Pago</h2>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-check-circle text-success fa-5x mb-3"></i>
+                        <h3 class="h4">¡Solicitud de Suscripción Recibida!</h3>
+                        <p class="lead">Hemos recibido tu solicitud para suscribirte a <strong>{{ service.display_name }}</strong></p>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h5 class="alert-heading">Detalles de tu solicitud:</h5>
+                        <ul class="mb-0">
+                            <li><strong>Servicio:</strong> {{ service.display_name }}</li>
+                            <li><strong>Precio:</strong> ${{ service.price|floatformat:2 }} MXN/mes</li>
+                            <li><strong>Método de pago:</strong> {{ subscription.get_payment_method_display }}</li>
+                            <li><strong>Estado:</strong> <span class="badge bg-warning">Pendiente de pago</span></li>
+                        </ul>
+                    </div>
+                    
+                    {% if subscription.payment_method == 'cash' %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h4 class="h5 mb-0">Instrucciones para pago en efectivo</h4>
+                        </div>
+                        <div class="card-body">
+                            <ol>
+                                <li>Acude a cualquiera de nuestras sucursales para realizar el pago en efectivo.</li>
+                                <li>Menciona el número de solicitud: <strong>#{{ subscription.id|stringformat:"06d" }}</strong></li>
+                                <li>Realiza el pago por la cantidad de <strong>${{ service.price|floatformat:2 }} MXN</strong></li>
+                            </ol>
+                            
+                            <div class="alert alert-light mt-3">
+                                <h5 class="h6">Información de contacto:</h5>
+                                <p class="mb-1"><strong>Dirección:</strong> Av. Principal #123, Col. Centro, Ciudad de México</p>
+                                <p class="mb-1"><strong>Horario:</strong> Lunes a Viernes de 9:00 AM a 6:00 PM</p>
+                                <p class="mb-0"><strong>Teléfono:</strong> (55) 1234-5678</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% elif subscription.payment_method == 'transfer' %}
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h4 class="h5 mb-0">Instrucciones para transferencia bancaria</h4>
+                        </div>
+                        <div class="card-body">
+                            <p>Por favor realiza la transferencia a la siguiente cuenta bancaria:</p>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card mb-3">
+                                        <div class="card-body">
+                                            <h5 class="h6">Datos bancarios</h5>
+                                            <ul class="list-unstyled">
+                                                <li><strong>Banco:</strong> BBVA</li>
+                                                <li><strong>Nombre:</strong> TV Services SA de CV</li>
+                                                <li><strong>Cuenta:</strong> 1234 5678 9012 3456</li>
+                                                <li><strong>CLABE:</strong> 0123 4567 8901 2345 6789</li>
+                                                <li><strong>Referencia:</strong> {{ subscription.id|stringformat:"06d" }}</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h5 class="h6">Importante</h5>
+                                            <ul>
+                                                <li>El monto a transferir debe ser exactamente de <strong>${{ service.price|floatformat:2 }} MXN</strong></li>
+                                                <li>Usa el número de referencia en el concepto de pago</li>
+                                                <li>Guarda el comprobante de transferencia</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-warning mt-3">
+                                <h5 class="h6">¡Importante!</h5>
+                                <p class="mb-0">
+                                    Una vez realizado el pago, por favor envía el comprobante a 
+                                    <a href="mailto:pagos@tvservices.com">pagos@tvservices.com</a> 
+                                    con el asunto "Pago #{{ subscription.id|stringformat:"06d" }}" para activar tu suscripción.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="h5">¿Qué sigue?</h4>
+                            <ol>
+                                <li>Realiza el pago siguiendo las instrucciones anteriores</li>
+                                <li>Una vez verificado el pago, activaremos tu suscripción</li>
+                                <li>Recibirás un correo de confirmación con los datos de acceso</li>
+                                <li>¡Disfruta de tu suscripción a {{ service.display_name }}!</li>
+                            </ol>
+                            
+                            <div class="alert alert-light mt-3">
+                                <p class="mb-0">
+                                    Si tienes alguna duda, contáctanos a 
+                                    <a href="mailto:soporte@tvservices.com">soporte@tvservices.com</a> 
+                                    o al teléfono (55) 1234-5678.
+                                </p>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <a href="{% url 'dashboard' %}" class="btn btn-outline-primary me-md-2">
+                                    <i class="fas fa-tachometer-alt me-1"></i> Ir a mi panel
+                                </a>
+                                <a href="{% url 'home' %}" class="btn btn-primary">
+                                    <i class="fas fa-home me-1"></i> Volver al inicio
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Cancelar Suscripción - TV Services{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card">
+                    <div class="card-body text-center p-5">
+                        <div class="mb-4">
+                            <div style="font-size: 4rem;">⚠️</div>
+                        </div>
+                        
+                        <h2 class="mb-3">Cancelar Suscripción</h2>
+                        
+                        <div class="mb-4">
+                            <h4>{{ subscription.service.display_name }}</h4>
+                            <p class="text-muted">
+                                Precio: <strong>${{ subscription.price_paid }}</strong><br>
+                                Activa desde: {{ subscription.created_at|date:"d/m/Y" }}
+                            </p>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <h6 class="mb-2">🚨 Importante</h6>
+                            <small>
+                                Al cancelar esta suscripción, perderás el acceso inmediatamente.
+                                Esta acción no se puede deshacer.
+                            </small>
+                        </div>
+                        
+                        <form method="post" class="mt-4">
+                            {% csrf_token %}
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-danger btn-lg">
+                                    🗑️ Confirmar Cancelación
+                                </button>
+                                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                                    ← Mantener Suscripción
+                                </a>
+                            </div>
+                        </form>
+                        
+                        <div class="mt-4 p-3 bg-light rounded">
+                            <h6 class="mb-2">💡 ¿Problemas con el servicio?</h6>
+                            <small class="text-muted">
+                                Si tienes algún problema, contáctanos antes de cancelar.
+                                Estamos aquí para ayudarte.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

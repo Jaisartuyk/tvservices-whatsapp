@@ -1,0 +1,310 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block title %}Checkout - TV Services{% endblock %}
+
+{% block extra_css %}
+<style>
+    .service-option {
+        border: 2px solid #e5e7eb;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        background: white;
+    }
+    
+    .service-option:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        border-color: #4f46e5;
+    }
+    
+    .service-option.selected {
+        border-color: #4f46e5;
+        background-color: #f8f9ff;
+    }
+    
+    .service-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .service-price {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #4f46e5;
+        margin: 1rem 0;
+    }
+    
+    .service-features {
+        text-align: left;
+        margin: 1rem 0;
+    }
+    
+    .service-features li {
+        margin: 0.5rem 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .service-features i {
+        color: #4f46e5;
+        margin-right: 0.5rem;
+    }
+    
+    .payment-methods {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        margin: 1.5rem 0;
+    }
+    
+    .payment-method {
+        border: 1px solid #e5e7eb;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .payment-method.selected {
+        border-color: #4f46e5;
+        background-color: #f0f2ff;
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 0.75rem;
+        padding: 2rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+    }
+    
+    .btn-checkout {
+        background-color: #4f46e5;
+        color: white;
+        padding: 0.75rem 2rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+    }
+    
+    .btn-checkout:hover {
+        background-color: #4338ca;
+        transform: translateY(-2px);
+    }
+    
+    .btn-checkout:disabled {
+        background-color: #9ca3af;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    #loading {
+        display: none;
+        margin-left: 10px;
+    }
+    
+    .service-option:hover {
+        border-color: #6366f1;
+        background-color: #f8fafc;
+    }
+    
+    .service-option.selected {
+        border-color: #6366f1;
+        background-color: #eff6ff;
+    }
+    
+    .service-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="h4 mb-0">Resumen de la compra</h2>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h3 class="h5">{{ service.display_name }}</h3>
+                            <p class="text-muted mb-0">Suscripción mensual</p>
+                        </div>
+                        <div class="text-end">
+                            <span class="h4 text-primary">${{ service.price|floatformat:2 }}</span>
+                            <span class="text-muted">/mes</span>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <h5 class="mb-3">Método de pago</h5>
+                    
+                    <form id="payment-form" method="post" action="{% url 'checkout' service.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            {% for method_key, method_name in payment_methods.items %}
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="payment_method" 
+                                               id="method_{{ method_key }}" value="{{ method_key }}" 
+                                               {% if forloop.first %}checked{% endif %}>
+                                        <label class="form-check-label" for="method_{{ method_key }}">
+                                            {% if method_key == 'cash' %}
+                                                <i class="fas fa-money-bill-wave me-2"></i>
+                                            {% elif method_key == 'transfer' %}
+                                                <i class="fas fa-university me-2"></i>
+                                            {% else %}
+                                                <i class="fas fa-credit-card me-2"></i>
+                                            {% endif %}
+                                            {{ method_name }}
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div id="payment-details" class="mt-4">
+                            <!-- Instrucciones para pago en efectivo -->
+                            <div id="cash-instructions" class="payment-instruction" style="display: none;">
+                                <div class="alert alert-info">
+                                    <h5><i class="fas fa-money-bill-wave me-2"></i>Instrucciones para pago en efectivo</h5>
+                                    <p class="mb-0">Acude a cualquiera de nuestras sucursales para realizar el pago en efectivo. Te contactaremos una vez que hayamos confirmado tu pago.</p>
+                                </div>
+                            </div>
+
+                            <!-- Instrucciones para transferencia bancaria -->
+                            <div id="transfer-instructions" class="payment-instruction" style="display: none;">
+                                <div class="alert alert-info">
+                                    <h5><i class="fas fa-university me-2"></i>Instrucciones para transferencia bancaria</h5>
+                                    <p class="mb-2">Realiza una transferencia a la siguiente cuenta:</p>
+                                    <ul class="mb-2">
+                                        <li><strong>Banco:</strong> BBVA</li>
+                                        <li><strong>Cuenta:</strong> 1234 5678 9012 3456</li>
+                                        <li><strong>CLABE:</strong> 0123 4567 8901 2345 6789</li>
+                                        <li><strong>Beneficiario:</strong> TV Services SA de CV</li>
+                                    </ul>
+                                    <p class="mb-0">Envía el comprobante a pagos@tvservices.com con tu número de pedido.</p>
+                                </div>
+                            </div>
+
+                            <!-- Instrucciones para pago con tarjeta -->
+                            <div id="card-instructions" class="payment-instruction" style="display: none;">
+                                <div class="alert alert-info">
+                                    <h5><i class="fas fa-credit-card me-2"></i>Pago con tarjeta</h5>
+                                    <p>Serás redirigido a una pasarela de pago segura para completar tu transacción.</p>
+                                    <div class="d-flex align-items-center">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/visa/visa-original.svg" alt="Visa" class="me-2" style="height: 25px;">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mastercard/mastercard-original.svg" alt="Mastercard" class="me-2" style="height: 25px;">
+                                        <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/americanexpress/americanexpress-original.svg" alt="American Express" style="height: 25px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submit-button">
+                                <span id="button-text">Confirmar Pago</span>
+                                <span id="spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
+                            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                                Cancelar y volver al inicio
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <h5 class="alert-heading">¿Necesitas ayuda?</h5>
+                <p class="mb-0">Si tienes alguna duda sobre el proceso de pago, no dudes en contactarnos.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Mostrar/ocultar instrucciones según el método de pago seleccionado
+        const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+        const paymentInstructions = document.querySelectorAll('.payment-instruction');
+        const submitButton = document.getElementById('submit-button');
+        const buttonText = document.getElementById('button-text');
+        const spinner = document.getElementById('spinner');
+        
+        function showPaymentInstructions(method) {
+            // Ocultar todas las instrucciones
+            paymentInstructions.forEach(instruction => {
+                instruction.style.display = 'none';
+            });
+            
+            // Mostrar solo las instrucciones del método seleccionado
+            const instructionId = method + '-instructions';
+            const instructionElement = document.getElementById(instructionId);
+            if (instructionElement) {
+                instructionElement.style.display = 'block';
+            }
+            
+            // Actualizar texto del botón según el método de pago
+            if (method === 'card') {
+                buttonText.textContent = 'Pagar con tarjeta';
+            } else {
+                buttonText.textContent = 'Confirmar Pago';
+            }
+        }
+        
+        // Mostrar instrucciones iniciales para el método seleccionado por defecto
+        const defaultMethod = document.querySelector('input[name="payment_method"]:checked').value;
+        showPaymentInstructions(defaultMethod);
+        
+        // Actualizar instrucciones cuando cambia el método de pago
+        paymentMethods.forEach(method => {
+            method.addEventListener('change', function() {
+                showPaymentInstructions(this.value);
+            });
+        });
+        
+        // Manejar envío del formulario
+        const form = document.getElementById('payment-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const selectedMethod = document.querySelector('input[name="payment_method"]:checked').value;
+                
+                // Mostrar spinner de carga
+                submitButton.disabled = true;
+                buttonText.textContent = 'Procesando...';
+                spinner.classList.remove('d-none');
+                
+                // Si el método no es tarjeta, dejar que el formulario se envíe normalmente
+                if (selectedMethod !== 'card') {
+                    return true;
+                }
+                
+                // Si es tarjeta, prevenir el envío normal del formulario
+                e.preventDefault();
+                
+                // Aquí iría la lógica de Stripe Checkout
+                // Por ahora, simplemente enviamos el formulario normalmente
+                // ya que la redirección a Stripe se manejará en el servidor
+                form.submit();
+                
+                return false;
+            });
+        }
+    });
+</script>
+{% endblock %}

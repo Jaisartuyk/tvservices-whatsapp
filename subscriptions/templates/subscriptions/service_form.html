@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        {% if form.instance.pk %}
+                            <i class="bi bi-pencil-square"></i> Editar Servicio
+                        {% else %}
+                            <i class="bi bi-plus-circle"></i> Nuevo Servicio
+                        {% endif %}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.nombre|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.nombre_mostrar|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.categoria|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.tipo_suscripcion|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.precio_base|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.max_dispositivos|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.calidad|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.idiomas|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.pais_origen|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.fecha_lanzamiento|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.descripcion|as_crispy_field }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.sitio_web|as_crispy_field }}
+                        </div>
+                        
+                        <div class="form-check form-switch mb-4">
+                            {{ form.is_active|as_crispy_field }}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'service_list' %}" class="btn btn-secondary me-md-2">
+                                <i class="bi bi-arrow-left me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-save me-1"></i> 
+                                {% if form.instance.pk %}Actualizar{% else %}Crear{% endif %} Servicio
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Inicializar datepicker para el campo de fecha de lanzamiento
+    document.addEventListener('DOMContentLoaded', function() {
+        const fechaLanzamiento = document.getElementById('id_fecha_lanzamiento');
+        if (fechaLanzamiento) {
+            // Si el navegador soporta input type="date", usamos eso
+            if (fechaLanzamiento.type !== 'date') {
+                // Si no, podríamos inicializar un datepicker aquí
+                // Por ejemplo, usando flatpickr o similar
+            }
+        }
+    });
+</script>
+{% endblock %}

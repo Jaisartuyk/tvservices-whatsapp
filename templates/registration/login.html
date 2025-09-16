@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Iniciar Sesión - TV Services{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="text-center mb-4">🔐 Iniciar Sesión</h2>
+                        
+                        <form method="post">
+                            {% csrf_token %}
+                            {{ form|crispy }}
+                            
+                            <button type="submit" class="btn btn-primary w-100 mb-3">
+                                Iniciar Sesión
+                            </button>
+                        </form>
+                        
+                        <div class="text-center">
+                            <p class="mb-0">
+                                ¿No tienes cuenta? 
+                                <a href="{% url 'register' %}" class="text-decoration-none">
+                                    Regístrate aquí
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,220 @@
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import User, Group
+from django.utils import timezone
+from django.db.models import Count, Sum, Q
+from django.template.response import TemplateResponse
+from django.urls import path
+from django.http import HttpResponseRedirect
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.decorators import user_passes_test
+
+from .models import Service, Subscription
+
+# ModelAdmins personalizados
+class ServiceAdmin(admin.ModelAdmin):
+    list_display = ('name', 'display_name', 'price', 'active', 'created_at')
+    list_filter = ('active', 'created_at')
+    search_fields = ('name', 'display_name')
+    list_editable = ('price', 'active')
+    ordering = ('name',)
+    readonly_fields = ('created_at',)
+
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'service', 'price_paid', 'active', 'created_at', 'expires_at')
+    list_filter = ('active', 'service', 'created_at')
+    search_fields = ('user__username', 'service__name')
+    list_editable = ('active',)
+    readonly_fields = ('created_at', 'expires_at')
+    date_hierarchy = 'created_at'
+
+# UserAdmin personalizado
+class CustomUserAdmin(BaseUserAdmin):
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'date_joined', 'get_subscription_count')
+    list_filter = ('is_staff', 'is_superuser', 'is_active', 'date_joined')
+    search_fields = ('username', 'first_name', 'last_name', 'email')
+    ordering = ('-date_joined',)
+    filter_horizontal = ('groups', 'user_permissions')
+    
+    def get_subscription_count(self, obj):
+        return obj.subscriptions.count()
+    get_subscription_count.short_description = 'Suscripciones'
+
+# Decorador para verificar superusuario
+def superuser_required(view_func):
+    def _wrapped_view(self, request, *args, **kwargs):
+        if not request.user.is_authenticated or not request.user.is_superuser:
+            from django.contrib.auth.views import redirect_to_login
+            from django.urls import reverse
+            return redirect_to_login(
+                request.get_full_path(),
+                reverse('admin:login')
+            )
+        return view_func(self, request, *args, **kwargs)
+    return _wrapped_view
+
+# ============================================
+# Configuración del Panel de Administración Personalizado
+# ============================================
+class CustomAdminSite(admin.AdminSite):
+    site_header = 'Panel de Control - TV Services'
+    site_title = 'Administración TV Services'
+    index_title = 'Resumen del Sistema'
+    
+    def has_permission(self, request):
+        """
+        Usuarios activos con permisos de administrador pueden acceder a este panel
+        """
+        return request.user.is_active and (request.user.is_superuser or request.user.is_staff)
+    
+    def get_urls(self):
+        """
+        Agrega las URLs personalizadas al admin.
+        """
+        from django.urls import path
+        urls = super().get_urls()
+        
+        # Crear una vista envuelta con admin_view
+        def index_wrapper(request, extra_context=None):
+            return self.index(request, extra_context)
+            
+        # Obtener la vista del índice con el wrapper
+        index_view = self.admin_view(index_wrapper)
+        
+        # Configurar las URLs personalizadas
+        custom_urls = [
+            path('', index_view, name='index'),
+        ]
+        
+        return custom_urls + urls
+    
+    @superuser_required
+    def index(self, request, extra_context=None):
+        """
+        Muestra la página de inicio del panel de administración.
+        """
+        # Obtener el contexto base
+        context = {
+            **self.each_context(request),
+            'title': 'Panel de Control',
+            'subtitle': 'Resumen del Sistema',
+            'is_popup': False,
+        }
+        
+        # Agregar contexto adicional si existe
+        if extra_context:
+            context.update(extra_context)
+        
+        # Solo cargar estadísticas si el usuario es superusuario
+        if request.user.is_superuser:
+            # Obtener estadísticas
+            stats = self.get_system_stats()
+            
+            # Obtener últimos registros
+            latest_users = User.objects.order_by('-date_joined')[:5]
+            latest_subscriptions = Subscription.objects.select_related('user', 'service').order_by('-created_at')[:5]
+            
+            # Obtener servicios más populares
+            popular_services = Service.objects.annotate(
+                sub_count=Count('subscriptions')
+            ).order_by('-sub_count')[:5]
+            
+            # Agregar al contexto
+            context.update({
+                'stats': stats,
+                'latest_users': latest_users,
+                'latest_subscriptions': latest_subscriptions,
+                'popular_services': popular_services,
+            })
+        
+        # Obtener el menú de la aplicación
+        app_list = self.get_app_list(request)
+        context.update({
+            'available_apps': app_list,
+            'app_list': app_list,
+            'has_permission': self.has_permission(request),
+            'site_title': self.site_title,
+            'site_header': self.site_header,
+            'index_title': self.index_title,
+        })
+            
+        return TemplateResponse(request, 'admin/dashboard.html', context)
+    
+    def get_system_stats(self):
+        """ Obtener estadísticas del sistema """
+        from django.db.models.functions import TruncMonth
+        
+        end_date = timezone.now()
+        start_date = end_date - timezone.timedelta(days=365)
+        
+        # Estadísticas de suscripciones por mes
+        subscription_data = (
+            Subscription.objects
+            .filter(created_at__range=(start_date, end_date))
+            .annotate(month=TruncMonth('created_at'))
+            .values('month')
+            .annotate(total=Count('id'))
+            .order_by('month')
+        )
+        
+        # Estadísticas de ingresos por mes
+        revenue_data = (
+            Subscription.objects
+            .filter(created_at__range=(start_date, end_date))
+            .annotate(month=TruncMonth('created_at'))
+            .values('month')
+            .annotate(total=Sum('price_paid'))
+            .order_by('month')
+        )
+        
+        # Estadísticas generales
+        stats = {
+            'total_users': User.objects.count(),
+            'active_subscriptions': Subscription.objects.filter(active=True).count(),
+            'monthly_revenue': Subscription.objects.filter(
+                created_at__month=timezone.now().month,
+                created_at__year=timezone.now().year
+            ).aggregate(Sum('price_paid'))['price_paid__sum'] or 0,
+            'new_users': User.objects.filter(
+                date_joined__month=timezone.now().month,
+                date_joined__year=timezone.now().year
+            ).count(),
+        }
+        
+        return {
+            'subscription_labels': [item['month'].strftime('%b') for item in subscription_data],
+            'subscription_data': [item['total'] for item in subscription_data],
+            'revenue_labels': [item['month'].strftime('%b') for item in revenue_data],
+            'revenue_data': [float(item['total'] or 0) for item in revenue_data],
+            'stats': stats,
+            'popular_services': Service.objects.annotate(
+                sub_count=Count('subscriptions')
+            ).order_by('-sub_count')[:5],
+            'recent_subscriptions': Subscription.objects.select_related(
+                'user', 'service'
+            ).order_by('-created_at')[:10]
+        }
+
+# Crear instancia del admin personalizado para superusuarios
+admin_site = CustomAdminSite(name='admin')
+
+# Registrar modelos en el admin personalizado
+admin_site.register(Service, ServiceAdmin)
+admin_site.register(Subscription, SubscriptionAdmin)
+admin_site.register(User, CustomUserAdmin)
+
+# Configurar el modelo Group para que sea accesible
+class GroupAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    filter_horizontal = ('permissions',)
+
+admin_site.register(Group, GroupAdmin)
+
+# Configurar el admin por defecto de Django
+admin.site = admin_site
+admin.sites.site = admin_site
+admin.autodiscover()
+
+# Variable para importar desde otros módulos
+site = admin_site

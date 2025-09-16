@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+{% block title %}Mi Panel - TV Services{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="text-white">📊 Mi Panel de Control</h1>
+                <p class="text-white-50">Gestiona todas tus suscripciones desde aquí</p>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <div class="stat-number">{{ active_subscriptions.count }}</div>
+                <div class="stat-label">Suscripciones Activas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">${{ total_monthly|floatformat:2 }}</div>
+                <div class="stat-label">Gasto Mensual</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ inactive_subscriptions.count }}</div>
+                <div class="stat-label">Suscripciones Canceladas</div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Active Subscriptions -->
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h3>🎯 Suscripciones Activas</h3>
+                            <a href="{% url 'home' %}#services" class="btn btn-primary">
+                                ➕ Nueva Suscripción
+                            </a>
+                        </div>
+
+                        {% if active_subscriptions %}
+                            {% for subscription in active_subscriptions %}
+                                <div class="subscription-item">
+                                    <div class="subscription-info">
+                                        <h4>{{ subscription.service.display_name }}</h4>
+                                        <p>Activa desde {{ subscription.created_at|date:"d/m/Y" }}</p>
+                                        {% if subscription.service.description %}
+                                            <small class="text-muted">{{ subscription.service.description }}</small>
+                                        {% endif %}
+                                    </div>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="subscription-price">${{ subscription.price }}</div>
+                                        <a href="{% url 'cancel_subscription' subscription.id %}" 
+                                           class="btn btn-danger btn-sm">
+                                            🗑️ Cancelar
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <h4 class="text-muted">No tienes suscripciones activas</h4>
+                                <p class="text-muted">¡Explora nuestros servicios y suscríbete a tu favorito!</p>
+                                <a href="{% url 'home' %}#services" class="btn btn-primary">
+                                    Ver Servicios Disponibles
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="col-lg-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="mb-4">⚡ Acciones Rápidas</h4>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'home' %}#services" class="btn btn-primary">
+                                ➕ Nueva Suscripción
+                            </a>
+                            <a href="{% url 'home' %}" class="btn btn-secondary">
+                                🏠 Ir al Inicio
+                            </a>
+                        </div>
+
+                        {% if total_monthly > 0 %}
+                            <div class="mt-4 p-3 bg-light rounded">
+                                <h6>💡 Consejo</h6>
+                                <small class="text-muted">
+                                    Estás gastando ${{ total_monthly|floatformat:2 }} al mes en entretenimiento.
+                                    Considera si realmente usas todos los servicios.
+                                </small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Inactive Subscriptions -->
+                {% if inactive_subscriptions %}
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <h5 class="mb-3">📋 Historial</h5>
+                            {% for subscription in inactive_subscriptions|slice:":5" %}
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <div>
+                                        <small class="fw-bold">{{ subscription.service.display_name }}</small>
+                                        <br>
+                                        <small class="text-muted">Cancelada</small>
+                                    </div>
+                                    <small class="text-muted">${{ subscription.price_paid }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

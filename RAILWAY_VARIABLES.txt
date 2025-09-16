@@ -1,0 +1,23 @@
+# Variables de Entorno para Railway
+# Copia y pega estas en Railway Dashboard → Variables
+
+# Django
+SECRET_KEY=django-insecure-tu-secret-key-super-seguro-aqui-cambiar
+DEBUG=False
+DJANGO_SETTINGS_MODULE=tvservices.settings
+
+# WaSender API (tus credenciales reales)
+WASENDER_API_KEY=e736f86d08e73ce5ee6f209098dc701a60deb8157f26b79485f66e1249aabee6
+WASENDER_SESSION_ID=8359
+WASENDER_WEBHOOK_URL=https://www.iqautoec.com/webhook/whatsapp/
+WASENDER_WEBHOOK_SECRET=tu-webhook-secret-cambiar
+
+# Notificaciones
+ENABLE_WHATSAPP_NOTIFICATIONS=True
+NOTIFICATION_TIME_HOUR=9
+
+# Railway
+RAILWAY_ENVIRONMENT=production
+PORT=8000
+
+# IMPORTANTE: DATABASE_URL se configura automáticamente por Railway

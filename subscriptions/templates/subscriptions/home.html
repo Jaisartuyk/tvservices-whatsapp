@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inicio - TV Services{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Hero Section -->
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-4 fw-bold mb-3">Bienvenido a TV Services</h1>
+            <p class="lead mb-4">Gestiona todas tus suscripciones de streaming en un solo lugar.</p>
+            {% if not user.is_authenticated %}
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                    <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-4 me-sm-3">Registrarse</a>
+                    <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg px-4">Iniciar Sesión</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- Dashboard Resumen -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="bg-primary bg-opacity-10 rounded p-3 mb-3">
+                        <i class="bi bi-people-fill fs-1 text-primary"></i>
+                    </div>
+                    <h3>Clientes</h3>
+                    <p class="fs-1 fw-bold">{{ total_clientes }}</p>
+                    <a href="{% url 'client_list' %}" class="btn btn-outline-primary">Ver Clientes</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="bg-success bg-opacity-10 rounded p-3 mb-3">
+                        <i class="bi bi-collection-play-fill fs-1 text-success"></i>
+                    </div>
+                    <h3>Suscripciones Activas</h3>
+                    <p class="fs-1 fw-bold">{{ suscripciones_activas }}</p>
+                    <a href="{% url 'subscription_list' %}" class="btn btn-outline-success">Ver Suscripciones</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="bg-warning bg-opacity-10 rounded p-3 mb-3">
+                        <i class="bi bi-bell-fill fs-1 text-warning"></i>
+                    </div>
+                    <h3>Próximos a Vencer</h3>
+                    <p class="fs-1 fw-bold">{{ proximas_a_vencer }}</p>
+                    <a href="{% url 'subscription_list' %}?estado=por_vencer" class="btn btn-outline-warning">Ver Próximas</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimas Suscripciones -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Últimas Suscripciones</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if ultimas_suscripciones and ultimas_suscripciones|length > 0 %}
+                        <div class="list-group list-group-flush">
+                            {% for item in ultimas_suscripciones %}
+                                {% if item.subscription.id %}
+                                    <a href="{% url 'subscription_detail' item.subscription.id %}" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ item.subscription.service.nombre_mostrar }}</h6>
+                                            <small class="text-{% if item.esta_activa %}success{% else %}danger{% endif %}">
+                                                {% if item.esta_activa %}Activa{% else %}Inactiva{% endif %}
+                                            </small>
+                                        </div>
+                                        <p class="mb-1">{{ item.subscription.cliente.nombre_completo }}</p>
+                                        <small>Vence: {{ item.subscription.end_date|date:"d M Y" }}</small>
+                                    </a>
+                                {% else %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ item.subscription.service.nombre_mostrar }}</h6>
+                                            <small class="text-{% if item.esta_activa %}success{% else %}danger{% endif %}">
+                                                {% if item.esta_activa %}Activa{% else %}Inactiva{% endif %}
+                                            </small>
+                                        </div>
+                                        <p class="mb-1">{{ item.subscription.cliente.nombre_completo }}</p>
+                                        <small>Vence: {{ item.subscription.end_date|date:"d M Y" }}</small>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center p-4">
+                            <p class="text-muted">No hay suscripciones recientes.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white text-end">
+                    <a href="{% url 'subscription_list' %}" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Próximos Vencimientos -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0">Próximos Vencimientos</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if proximos_vencimientos and proximos_vencimientos|length > 0 %}
+                        <div class="list-group list-group-flush">
+                            {% for item in proximos_vencimientos %}
+                                {% if item.subscription.id %}
+                                    <a href="{% url 'subscription_detail' item.subscription.id %}" class="list-group-item list-group-item-action">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ item.subscription.service.nombre_mostrar }}</h6>
+                                            <span class="badge bg-{% if item.dias_restantes <= 3 %}danger{% else %}warning{% endif %}">
+                                                {{ item.dias_restantes }} días
+                                            </span>
+                                        </div>
+                                        <p class="mb-1">{{ item.subscription.cliente.nombre_completo }}</p>
+                                        <small>Vence: {{ item.subscription.end_date|date:"d M Y" }}</small>
+                                    </a>
+                                {% else %}
+                                    <div class="list-group-item">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">{{ item.subscription.service.nombre_mostrar }}</h6>
+                                            <span class="badge bg-{% if item.dias_restantes <= 3 %}danger{% else %}warning{% endif %}">
+                                                {{ item.dias_restantes }} días
+                                            </span>
+                                        </div>
+                                        <p class="mb-1">{{ item.subscription.cliente.nombre_completo }}</p>
+                                        <small>Vence: {{ item.subscription.end_date|date:"d M Y" }}</small>
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center p-4">
+                            <p class="text-muted">No hay suscripciones por vencer próximamente.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-white text-end">
+                    <a href="{% url 'subscription_list' %}?estado=por_vencer" class="btn btn-sm btn-outline-warning">Ver Próximas</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Características para usuarios no autenticados -->
+    <div class="row g-4 py-5">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="bg-primary bg-opacity-10 rounded p-3 mb-3">
+                        <i class="bi bi-speedometer2 fs-1 text-primary"></i>
+                    </div>
+                    <h3>Gestión Sencilla</h3>
+                    <p>Administra todas tus suscripciones en un solo lugar.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="bg-success bg-opacity-10 rounded p-3 mb-3">
+                        <i class="bi bi-bell-fill fs-1 text-success"></i>
+                    </div>
+                    <h3>Recordatorios</h3>
+                    <p>Recibe notificaciones antes de que venzan tus suscripciones.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <div class="bg-warning bg-opacity-10 rounded p-3 mb-3">
+                        <i class="bi bi-graph-up fs-1 text-warning"></i>
+                    </div>
+                    <h3>Reportes</h3>
+                    <p>Visualiza estadísticas de tus gastos en suscripciones.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

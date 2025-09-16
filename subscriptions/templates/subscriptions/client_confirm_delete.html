@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar Cliente - {{ object.nombre_completo }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Confirmar Eliminación
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-person-x display-1 text-danger"></i>
+                        <h3 class="mt-4">¿Estás seguro de que deseas eliminar este cliente?</h3>
+                        <p class="lead">
+                            Estás a punto de eliminar al cliente 
+                            <strong>{{ object.nombre_completo }}</strong>.
+                            Esta acción no se puede deshacer.
+                        </p>
+                        
+                        {% if object.subscriptions.exists %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            <strong>¡Advertencia!</strong> Este cliente tiene 
+                            {{ object.subscriptions.count }} suscripción(es) activa(s) que también serán eliminadas.
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a href="{% url 'client_detail' object.pk %}" class="btn btn-outline-secondary me-md-2">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Sí, eliminar cliente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

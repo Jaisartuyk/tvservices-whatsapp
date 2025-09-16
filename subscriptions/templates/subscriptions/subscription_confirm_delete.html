@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle"></i> Confirmar Eliminación de Suscripción
+                    </h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-trash display-1 text-warning"></i>
+                        <h3 class="mt-4">¿Estás seguro de que deseas eliminar esta suscripción?</h3>
+                        
+                        <div class="alert alert-warning mt-4">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-tv fs-1 me-4"></i>
+                                <div class="text-start">
+                                    <h5 class="mb-1">{{ object.service.name }}</h5>
+                                    <p class="mb-1">
+                                        Cliente: <strong>{{ object.user.get_full_name|default:object.user.username }}</strong>
+                                    </p>
+                                    <p class="mb-0">
+                                        Estado: 
+                                        {% if object.active %}
+                                            <span class="badge bg-success">Activa</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactiva</span>
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p class="lead mt-4">
+                            Esta acción no se puede deshacer y se perderá toda la información de esta suscripción.
+                        </p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                            <a href="{% url 'client_detail' object.user.pk %}" class="btn btn-outline-secondary me-md-2">
+                                <i class="bi bi-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Sí, eliminar suscripción
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Confirmar Eliminación
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">¿Estás seguro de que deseas eliminar este servicio?</h5>
+                    
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h6 class="card-subtitle mb-2 text-muted">{{ object.nombre_mostrar }}</h6>
+                            <p class="card-text">
+                                <small class="text-muted">{{ object.nombre }}</small>
+                            </p>
+                            {% if object.categoria %}
+                                <span class="badge bg-light text-dark">
+                                    {{ object.categoria.nombre }}
+                                </span>
+                            {% endif %}
+                            <div class="mt-2">
+                                <span class="badge {% if object.is_active %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if object.is_active %}Activo{% else %}Inactivo{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if object.tiene_suscripciones_activas %}
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <strong>¡Atención!</strong> Este servicio tiene suscripciones activas. 
+                            No se puede eliminar mientras tenga suscripciones asociadas.
+                        </div>
+                    {% endif %}
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'service_list' %}" class="btn btn-secondary me-md-2">
+                                <i class="bi bi-x-circle me-1"></i> Cancelar
+                            </a>
+                            {% if not object.tiene_suscripciones_activas %}
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash me-1"></i> Sí, eliminar
+                                </button>
+                            {% else %}
+                                <a href="{% url 'service_list' %}" class="btn btn-primary">
+                                    <i class="bi bi-arrow-left me-1"></i> Volver a la lista
+                                </a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
