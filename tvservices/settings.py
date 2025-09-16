@@ -18,7 +18,20 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-your-secret-key-here'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS configuration
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# Add Railway domain if in production
+if 'RAILWAY_ENVIRONMENT' in os.environ:
+    railway_domain = os.environ.get('RAILWAY_STATIC_URL', '').replace('https://', '').replace('http://', '')
+    if railway_domain and railway_domain not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(railway_domain)
+    # Also add the production domain pattern
+    ALLOWED_HOSTS.extend([
+        'tvservices-whatsapp-production.up.railway.app',
+        '*.up.railway.app',
+        '*.railway.app'
+    ])
 
 # Application definition
 INSTALLED_APPS = [
