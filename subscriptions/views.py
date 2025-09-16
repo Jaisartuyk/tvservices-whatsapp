@@ -954,3 +954,55 @@ def subscription_cancel(request, pk):
             messages.warning(request, 'Esta suscripción ya está cancelada.')
     
     return redirect('subscription_detail', pk=pk)
+
+
+@csrf_exempt
+def cron_notifications(request):
+    """
+    Endpoint para ejecutar notificaciones desde cron externo
+    """
+    if request.method == 'POST':
+        try:
+            import subprocess
+            import sys
+            
+            # Ejecutar notificaciones para todos los días
+            results = []
+            
+            for days in [0, 1, 3, 7]:
+                try:
+                    result = subprocess.run([
+                        sys.executable, 'manage.py', 'send_expiration_notifications', 
+                        '--days', str(days)
+                    ], capture_output=True, text=True, timeout=300)
+                    
+                    results.append({
+                        'days': days,
+                        'success': result.returncode == 0,
+                        'output': result.stdout,
+                        'error': result.stderr
+                    })
+                    
+                except Exception as e:
+                    results.append({
+                        'days': days,
+                        'success': False,
+                        'error': str(e)
+                    })
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Notificaciones ejecutadas',
+                'results': results
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Método no permitido. Use POST.'
+    })
