@@ -23,6 +23,9 @@ django-colorfield==0.14.0
 requests==2.32.4
 httpx==0.28.1
 
+# Payment processing
+stripe==12.5.0
+
 # Environment
 python-dotenv==1.1.1
 
