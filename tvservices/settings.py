@@ -45,12 +45,17 @@ CSRF_TRUSTED_ORIGINS = [
 # Add dynamic CSRF origins from environment
 if 'RAILWAY_ENVIRONMENT' in os.environ:
     railway_url = os.environ.get('RAILWAY_STATIC_URL', '')
-    if railway_url and railway_url not in CSRF_TRUSTED_ORIGINS:
-        CSRF_TRUSTED_ORIGINS.append(railway_url)
-        # Also add HTTP version
-        http_url = railway_url.replace('https://', 'http://')
-        if http_url not in CSRF_TRUSTED_ORIGINS:
-            CSRF_TRUSTED_ORIGINS.append(http_url)
+    if railway_url:
+        # Ensure URL has scheme
+        if not railway_url.startswith(('http://', 'https://')):
+            railway_url = 'https://' + railway_url
+        
+        if railway_url not in CSRF_TRUSTED_ORIGINS:
+            CSRF_TRUSTED_ORIGINS.append(railway_url)
+            # Also add HTTP version
+            http_url = railway_url.replace('https://', 'http://')
+            if http_url not in CSRF_TRUSTED_ORIGINS:
+                CSRF_TRUSTED_ORIGINS.append(http_url)
 
 # Application definition
 INSTALLED_APPS = [
@@ -67,6 +72,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -128,10 +134,17 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static'),
-]
+
+# Only add static directory if it exists
+STATICFILES_DIRS = []
+static_dir = os.path.join(BASE_DIR, 'static')
+if os.path.exists(static_dir):
+    STATICFILES_DIRS.append(static_dir)
+
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Whitenoise configuration for serving static files
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Media files
 MEDIA_URL = '/media/'
