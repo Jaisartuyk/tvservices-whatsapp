@@ -1,16 +1,18 @@
 [phases.setup]
-nixPkgs = ["python311", "python311Packages.pip"]
+nixPkgs = ["python311", "python311Packages.pip", "python311Packages.virtualenv"]
 
 [phases.install]
 cmds = [
-    "pip install -r requirements.txt"
+    "python -m venv /opt/venv",
+    "/opt/venv/bin/pip install --upgrade pip",
+    "/opt/venv/bin/pip install -r requirements.txt"
 ]
 
 [phases.build]
 cmds = [
-    "python manage.py collectstatic --noinput",
-    "python manage.py migrate"
+    "/opt/venv/bin/python manage.py collectstatic --noinput",
+    "/opt/venv/bin/python manage.py migrate"
 ]
 
 [start]
-cmd = "gunicorn tvservices.wsgi:application --bind 0.0.0.0:$PORT"
+cmd = "/opt/venv/bin/gunicorn tvservices.wsgi:application --bind 0.0.0.0:$PORT"
