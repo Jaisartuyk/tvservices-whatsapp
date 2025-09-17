@@ -1071,3 +1071,59 @@ def send_manual_reminder(request, subscription_id):
             'success': False,
             'error': str(e)
         })
+
+
+@csrf_exempt
+def test_whatsapp_direct(request):
+    """
+    Endpoint de prueba directa de WhatsApp
+    """
+    if request.method == 'POST':
+        try:
+            import requests
+            
+            # Configuración directa
+            url = "https://wasenderapi.com/api/send-message"
+            api_key = "e736f86d08e73ce5ee6f209098dc701a60deb8157f26b79485f66e1249aabee6"
+            
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            }
+            
+            payload = {
+                "to": "+593968196046",
+                "text": "🚀 Prueba directa desde Railway - TV Services"
+            }
+            
+            logger.info(f"Prueba directa WhatsApp - URL: {url}")
+            logger.info(f"Prueba directa WhatsApp - Payload: {payload}")
+            
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+            
+            logger.info(f"Prueba directa WhatsApp - Status: {response.status_code}")
+            logger.info(f"Prueba directa WhatsApp - Response: {response.text}")
+            
+            if response.status_code == 200:
+                return JsonResponse({
+                    'success': True,
+                    'message': 'WhatsApp enviado exitosamente',
+                    'response': response.json()
+                })
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Error {response.status_code}: {response.text}'
+                })
+                
+        except Exception as e:
+            logger.error(f"Error en prueba directa WhatsApp: {e}")
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Método no permitido. Use POST.'
+    })

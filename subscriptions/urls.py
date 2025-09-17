@@ -56,6 +56,9 @@ urlpatterns = [
     
     # Recordatorio manual
     path('subscription/<int:subscription_id>/send-reminder/', views.send_manual_reminder, name='send_manual_reminder'),
+    
+    # Prueba directa de WhatsApp
+    path('test-whatsapp/', views.test_whatsapp_direct, name='test_whatsapp_direct'),
 ]
 
 # Servir archivos estáticos en desarrollo
