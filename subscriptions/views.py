@@ -1006,3 +1006,68 @@ def cron_notifications(request):
         'success': False,
         'error': 'Método no permitido. Use POST.'
     })
+
+
+@login_required
+@require_POST
+def send_manual_reminder(request, subscription_id):
+    """
+    Enviar recordatorio manual para una suscripción específica
+    """
+    try:
+        # Obtener la suscripción
+        subscription = get_object_or_404(
+            Subscription.objects.select_related('cliente', 'service'),
+            id=subscription_id,
+            cliente__creado_por=request.user
+        )
+        
+        # Importar el servicio de WhatsApp
+        from .services.whatsapp_service import WhatsAppService
+        
+        # Calcular días restantes
+        dias_restantes = subscription.dias_restantes
+        
+        # Crear instancia del servicio
+        whatsapp_service = WhatsAppService()
+        
+        # Enviar notificación
+        resultado = whatsapp_service.send_expiration_notification(
+            subscription=subscription,
+            days_notice=dias_restantes
+        )
+        
+        if resultado['success']:
+            messages.success(
+                request, 
+                f'✅ Recordatorio enviado exitosamente a {subscription.cliente.nombre_completo}'
+            )
+            return JsonResponse({
+                'success': True,
+                'message': 'Recordatorio enviado exitosamente',
+                'phone': subscription.cliente.telefono,
+                'days_remaining': dias_restantes
+            })
+        else:
+            messages.error(
+                request, 
+                f'❌ Error al enviar recordatorio: {resultado.get("error", "Error desconocido")}'
+            )
+            return JsonResponse({
+                'success': False,
+                'error': resultado.get('error', 'Error desconocido')
+            })
+            
+    except Subscription.DoesNotExist:
+        messages.error(request, '❌ Suscripción no encontrada')
+        return JsonResponse({
+            'success': False,
+            'error': 'Suscripción no encontrada'
+        })
+    except Exception as e:
+        logger.error(f"Error enviando recordatorio manual: {e}")
+        messages.error(request, f'❌ Error inesperado: {str(e)}')
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })

@@ -352,6 +352,51 @@
         </div>
     </div>
 </div>
+
+<!-- Modal para Enviar Recordatorio -->
+<div class="modal fade" id="sendReminderModal" tabindex="-1" aria-labelledby="sendReminderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sendReminderModalLabel">
+                    <i class="bi bi-envelope me-2"></i>Enviar Recordatorio
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Se enviará un recordatorio por WhatsApp a <strong>{{ suscripcion.cliente.nombre_completo }}</strong>
+                    al número <strong>{{ suscripcion.cliente.telefono }}</strong>.
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><strong>Servicio:</strong></label>
+                    <p class="mb-1">{{ suscripcion.service.nombre_mostrar }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><strong>Fecha de vencimiento:</strong></label>
+                    <p class="mb-1">{{ suscripcion.end_date|date:'d/m/Y' }}</p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label"><strong>Días restantes:</strong></label>
+                    <p class="mb-1">
+                        <span class="badge {% if suscripcion.dias_restantes <= 0 %}bg-danger{% elif suscripcion.dias_restantes <= 3 %}bg-warning{% else %}bg-success{% endif %}">
+                            {{ suscripcion.dias_restantes }} días
+                        </span>
+                    </p>
+                </div>
+                <div id="reminderResult" class="d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="sendReminderBtn">
+                    <i class="bi bi-send me-2"></i>Enviar Recordatorio
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_css %}
@@ -366,4 +411,76 @@
         font-size: 2rem;
     }
 </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sendReminderBtn = document.getElementById('sendReminderBtn');
+    const reminderResult = document.getElementById('reminderResult');
+    
+    if (sendReminderBtn) {
+        sendReminderBtn.addEventListener('click', function() {
+            // Deshabilitar botón y mostrar loading
+            sendReminderBtn.disabled = true;
+            sendReminderBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Enviando...';
+            
+            // Limpiar resultados anteriores
+            reminderResult.classList.add('d-none');
+            
+            // Hacer petición AJAX
+            fetch('{% url "send_manual_reminder" suscripcion.id %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    reminderResult.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <strong>¡Éxito!</strong> ${data.message}
+                            <br><small>Teléfono: ${data.phone} | Días restantes: ${data.days_remaining}</small>
+                        </div>
+                    `;
+                    
+                    // Cerrar modal después de 3 segundos
+                    setTimeout(() => {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('sendReminderModal'));
+                        modal.hide();
+                    }, 3000);
+                } else {
+                    reminderResult.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Error:</strong> ${data.error}
+                        </div>
+                    `;
+                }
+                
+                reminderResult.classList.remove('d-none');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                reminderResult.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Error de conexión:</strong> No se pudo enviar el recordatorio.
+                    </div>
+                `;
+                reminderResult.classList.remove('d-none');
+            })
+            .finally(() => {
+                // Restaurar botón
+                sendReminderBtn.disabled = false;
+                sendReminderBtn.innerHTML = '<i class="bi bi-send me-2"></i>Enviar Recordatorio';
+            });
+        });
+    }
+});
+</script>
 {% endblock %}

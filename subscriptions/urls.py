@@ -53,6 +53,9 @@ urlpatterns = [
     
     # Cron jobs para Railway
     path('cron/notifications/', views.cron_notifications, name='cron_notifications'),
+    
+    # Recordatorio manual
+    path('subscription/<int:subscription_id>/send-reminder/', views.send_manual_reminder, name='send_manual_reminder'),
 ]
 
 # Servir archivos estáticos en desarrollo
