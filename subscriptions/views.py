@@ -1022,14 +1022,14 @@ def send_manual_reminder(request, subscription_id):
             cliente__creado_por=request.user
         )
         
-        # Importar el servicio de WhatsApp existente desde services.py
-        from subscriptions.services import WhatsAppService, NotificationService
+        # Importar el módulo services directamente
+        from subscriptions import services as services_module
         
         # Calcular días restantes
         dias_restantes = subscription.dias_restantes
         
         # Crear instancia del servicio de notificaciones
-        notification_service = NotificationService()
+        notification_service = services_module.NotificationService()
         
         # Enviar notificación usando el servicio existente
         resultado = notification_service.send_expiration_notification(
