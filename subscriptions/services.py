@@ -49,7 +49,7 @@ class WhatsAppService:
         
         payload = {
             'to': clean_phone,
-            'text': message
+            'message': message
         }
         
         # Agregar session_id si está configurado
@@ -57,6 +57,10 @@ class WhatsAppService:
             payload['session_id'] = int(self.session_id)
         
         try:
+            logger.info(f"Enviando WhatsApp a {clean_phone}")
+            logger.info(f"URL: {url}")
+            logger.info(f"Payload: {payload}")
+            
             response = requests.post(url, json=payload, headers=headers, timeout=30)
             response.raise_for_status()
             
