@@ -29,11 +29,14 @@ COPY . /app/
 # Set Railway environment for static files
 ENV RAILWAY_ENVIRONMENT=production
 
+# Make script executable
+RUN chmod +x railway_init.sh
+
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
 # Expose port
 EXPOSE $PORT
 
-# Run gunicorn
-CMD ["sh", "-c", "python manage.py migrate && python create_superuser.py && python populate_initial_data.py && gunicorn tvservices.wsgi:application --bind 0.0.0.0:$PORT --workers 2"]
+# Run initialization script
+CMD ["./railway_init.sh"]
