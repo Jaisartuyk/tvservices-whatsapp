@@ -26,6 +26,9 @@ RUN pip install --upgrade pip \
 # Copy project
 COPY . /app/
 
+# Set Railway environment for static files
+ENV RAILWAY_ENVIRONMENT=production
+
 # Collect static files
 RUN python manage.py collectstatic --noinput
 
