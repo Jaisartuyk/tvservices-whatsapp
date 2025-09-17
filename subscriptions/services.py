@@ -47,14 +47,15 @@ class WhatsAppService:
             'Authorization': f'Bearer {self.api_key}'
         }
         
+        # Payload exacto según el ejemplo de curl
         payload = {
             'to': clean_phone,
             'message': message
         }
         
-        # Agregar session_id si está configurado
+        # Agregar session_id como string (según documentación)
         if self.session_id:
-            payload['session_id'] = int(self.session_id)
+            payload['session_id'] = str(self.session_id)
         
         try:
             logger.info(f"Enviando WhatsApp a {clean_phone}")
@@ -62,6 +63,11 @@ class WhatsAppService:
             logger.info(f"Payload: {payload}")
             
             response = requests.post(url, json=payload, headers=headers, timeout=30)
+            
+            # Log de la respuesta para debug
+            logger.info(f"Status Code: {response.status_code}")
+            logger.info(f"Response: {response.text}")
+            
             response.raise_for_status()
             
             result = response.json()
