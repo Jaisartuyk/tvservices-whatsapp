@@ -1,7 +1,7 @@
 import requests
 import logging
 from django.conf import settings
-from subscriptions.models import NotificationLog, NotificationType, NotificationStatus
+from subscriptions.models import NotificationLog
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ class WhatsAppService:
             notification_log = NotificationLog.objects.create(
                 subscription=subscription,
                 notification_type=notification_type,
-                status=NotificationStatus.PENDING,
+                status=NotificationLog.NotificationStatus.PENDING,
                 phone_number=phone_number,
                 message_content=message,
                 days_notice=days_notice
@@ -235,11 +235,5 @@ Para renovar, responde este mensaje.
         Returns:
             str: Tipo de notificación
         """
-        if days_notice == 0:
-            return NotificationType.EXPIRATION_TODAY
-        elif days_notice == 1:
-            return NotificationType.EXPIRATION_TOMORROW
-        elif days_notice <= 3:
-            return NotificationType.EXPIRATION_SOON
-        else:
-            return NotificationType.EXPIRATION_REMINDER
+        # Por ahora solo usamos EXPIRATION_WARNING para todos los casos
+        return NotificationLog.NotificationType.EXPIRATION_WARNING
