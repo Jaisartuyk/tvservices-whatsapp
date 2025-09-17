@@ -62,21 +62,21 @@ class Command(BaseCommand):
                 {
                     'nombres': 'María', 'apellidos': 'González',
                     'email': 'maria.gonzalez@email.com',
-                    'telefono': '+593987654321',
+                    'telefono': '+593968196046',  # Número real con WhatsApp
                     'direccion': 'Quito, Ecuador',
                     'fecha_nacimiento': date(1990, 5, 15)
                 },
                 {
                     'nombres': 'Carlos', 'apellidos': 'Pérez',
                     'email': 'carlos.perez@email.com',
-                    'telefono': '+593976543210',
+                    'telefono': '+593968196046',  # Número real con WhatsApp
                     'direccion': 'Guayaquil, Ecuador',
                     'fecha_nacimiento': date(1985, 8, 22)
                 },
                 {
                     'nombres': 'Ana', 'apellidos': 'López',
                     'email': 'ana.lopez@email.com',
-                    'telefono': '+593965432109',
+                    'telefono': '+593968196046',  # Número real con WhatsApp
                     'direccion': 'Cuenca, Ecuador',
                     'fecha_nacimiento': date(1992, 12, 3)
                 }
