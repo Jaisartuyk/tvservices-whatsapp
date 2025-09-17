@@ -1022,8 +1022,8 @@ def send_manual_reminder(request, subscription_id):
             cliente__creado_por=request.user
         )
         
-        # Importar el servicio de WhatsApp existente
-        from .services import WhatsAppService, NotificationService
+        # Importar el servicio de WhatsApp existente desde services.py
+        from subscriptions.services import WhatsAppService, NotificationService
         
         # Calcular días restantes
         dias_restantes = subscription.dias_restantes
