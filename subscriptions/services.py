@@ -50,10 +50,10 @@ class WhatsAppService:
             'Authorization': f'Bearer {self.api_key}'
         }
         
-        # Payload mínimo exacto como el curl de ejemplo
+        # Payload corregido: usar 'text' en lugar de 'message'
         payload = {
             'to': clean_phone,
-            'message': message
+            'text': message
         }
         
         # NO agregar session_id por ahora para probar formato mínimo
