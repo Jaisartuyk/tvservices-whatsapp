@@ -21,6 +21,10 @@
         .service-card { transition: transform 0.3s; }
         .service-card:hover { transform: translateY(-5px); }
         .btn-primary { background-color: #667eea; border-color: #667eea; }
+        
+        /* Evitar cursor.svg */
+        * { cursor: default !important; }
+        a, button, .btn { cursor: pointer !important; }
     </style>
     
     {% block extra_css %}{% endblock %}
