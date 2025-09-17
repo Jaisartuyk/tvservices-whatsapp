@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# Updated: 2025-09-16 22:27
 echo "🚀 Starting Railway deployment initialization..."
 
 # Verificar conexión a base de datos
