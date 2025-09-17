@@ -35,7 +35,7 @@ def create_initial_data():
             'precio_base': 12.99,
             'descripcion': 'Servicio de streaming de Netflix',
             'categoria': streaming_cat,
-            'activo': True
+            'is_active': True
         },
         {
             'nombre': 'HBO Max',
@@ -43,7 +43,7 @@ def create_initial_data():
             'precio_base': 9.99,
             'descripcion': 'Servicio de streaming de HBO Max',
             'categoria': streaming_cat,
-            'activo': True
+            'is_active': True
         },
         {
             'nombre': 'Disney Plus',
@@ -51,7 +51,7 @@ def create_initial_data():
             'precio_base': 7.99,
             'descripcion': 'Servicio de streaming de Disney Plus',
             'categoria': streaming_cat,
-            'activo': True
+            'is_active': True
         },
         {
             'nombre': 'Amazon Prime',
@@ -59,7 +59,7 @@ def create_initial_data():
             'precio_base': 8.99,
             'descripcion': 'Servicio de streaming de Amazon Prime',
             'categoria': streaming_cat,
-            'activo': True
+            'is_active': True
         },
         {
             'nombre': 'Paramount Plus',
@@ -67,7 +67,7 @@ def create_initial_data():
             'precio_base': 5.99,
             'descripcion': 'Servicio de streaming de Paramount Plus',
             'categoria': streaming_cat,
-            'activo': True
+            'is_active': True
         }
     ]
     
@@ -149,7 +149,7 @@ def create_initial_data():
                 'end_date': date.today() + timedelta(days=10),  # Vence en 10 días
                 'price': 12.99,
                 'payment_method': 'Tarjeta de Crédito',
-                'active': True
+                'is_active': True
             },
             {
                 'cliente': created_clients[1],  # Carlos
@@ -158,7 +158,7 @@ def create_initial_data():
                 'end_date': date.today() + timedelta(days=3),  # Vence en 3 días
                 'price': 9.99,
                 'payment_method': 'PayPal',
-                'active': True
+                'is_active': True
             },
             {
                 'cliente': created_clients[2],  # Ana
@@ -167,7 +167,7 @@ def create_initial_data():
                 'end_date': date.today() + timedelta(days=1),  # Vence mañana
                 'price': 7.99,
                 'payment_method': 'Transferencia',
-                'active': True
+                'is_active': True
             }
         ]
         
