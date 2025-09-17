@@ -37,9 +37,12 @@ class WhatsAppService:
             logger.error(f"Número de teléfono inválido: {phone_number}")
             return {'success': False, 'error': 'Número de teléfono inválido'}
         
-        # Asegurar que el número tenga el formato +57XXXXXXXXX
+        # Asegurar que el número tenga el formato +593XXXXXXXXX (Ecuador)
         if not clean_phone.startswith('+'):
             clean_phone = '+' + clean_phone
+            
+        # Log del número final
+        logger.info(f"Número limpio: {clean_phone}")
         
         url = f"{self.api_url}/api/send-message"
         headers = {
@@ -47,15 +50,15 @@ class WhatsAppService:
             'Authorization': f'Bearer {self.api_key}'
         }
         
-        # Payload exacto según el ejemplo de curl
+        # Payload mínimo exacto como el curl de ejemplo
         payload = {
             'to': clean_phone,
             'message': message
         }
         
-        # Agregar session_id como string (según documentación)
-        if self.session_id:
-            payload['session_id'] = str(self.session_id)
+        # NO agregar session_id por ahora para probar formato mínimo
+        # if self.session_id:
+        #     payload['session_id'] = str(self.session_id)
         
         try:
             logger.info(f"Enviando WhatsApp a {clean_phone}")
