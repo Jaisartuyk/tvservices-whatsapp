@@ -13,7 +13,7 @@ class WhatsAppService:
         self.api_key = getattr(settings, 'WASENDER_API_KEY', '')
         self.session_id = getattr(settings, 'WASENDER_SESSION_ID', '')
         self.webhook_url = getattr(settings, 'WASENDER_WEBHOOK_URL', '')
-        self.base_url = 'https://wasenderapi.com/api'
+        self.base_url = 'https://api.wasender.com'
         
     def send_expiration_notification(self, subscription, days_notice):
         """
@@ -75,6 +75,7 @@ class WhatsAppService:
     def _send_whatsapp_message(self, phone_number, message):
         """
         Enviar mensaje por WhatsApp usando WaSender API
+        Prueba diferentes endpoints hasta encontrar uno que funcione
         
         Args:
             phone_number: Número de teléfono limpio
@@ -83,50 +84,98 @@ class WhatsAppService:
         Returns:
             dict: Resultado del envío
         """
-        try:
-            url = f"{self.base_url}/send"
-            
-            headers = {
-                'Authorization': f'Bearer {self.api_key}',
-                'Content-Type': 'application/json'
-            }
-            
-            data = {
-                'session_id': self.session_id,
-                'phone': phone_number,
-                'message': message
-            }
-            
-            response = requests.post(url, headers=headers, json=data, timeout=30)
-            response_data = response.json()
-            
-            if response.status_code == 200 and response_data.get('success'):
-                return {
-                    'success': True,
-                    'api_response': response_data
+        # Lista de configuraciones de API para probar
+        api_configs = [
+            {
+                'url': 'https://api.wasender.com/v1/messages',
+                'data': {
+                    'session': self.session_id,
+                    'to': phone_number,
+                    'text': message
                 }
-            else:
-                return {
-                    'success': False,
-                    'error': response_data.get('message', 'Error en API de WhatsApp'),
-                    'api_response': response_data
+            },
+            {
+                'url': 'https://wasenderapi.com/api/send',
+                'data': {
+                    'session_id': self.session_id,
+                    'phone': phone_number,
+                    'message': message
                 }
+            },
+            {
+                'url': 'https://api.wasender.com/send',
+                'data': {
+                    'session_id': self.session_id,
+                    'phone': phone_number,
+                    'message': message
+                }
+            }
+        ]
+        
+        headers = {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json'
+        }
+        
+        last_error = None
+        
+        for config in api_configs:
+            try:
+                logger.info(f"Intentando enviar WhatsApp via: {config['url']}")
                 
-        except requests.exceptions.Timeout:
-            return {
-                'success': False,
-                'error': 'Timeout en la conexión con WaSender API'
-            }
-        except requests.exceptions.RequestException as e:
-            return {
-                'success': False,
-                'error': f'Error de conexión: {str(e)}'
-            }
-        except Exception as e:
-            return {
-                'success': False,
-                'error': f'Error inesperado: {str(e)}'
-            }
+                response = requests.post(
+                    config['url'], 
+                    headers=headers, 
+                    json=config['data'], 
+                    timeout=30
+                )
+                
+                # Intentar parsear JSON
+                try:
+                    response_data = response.json()
+                except:
+                    response_data = {'raw_response': response.text}
+                
+                logger.info(f"Respuesta de {config['url']}: {response.status_code} - {response_data}")
+                
+                # Verificar si fue exitoso
+                if response.status_code == 200:
+                    # Diferentes formas de verificar éxito según la API
+                    success_indicators = [
+                        response_data.get('success') == True,
+                        response_data.get('status') == 'success',
+                        'sent' in str(response_data).lower(),
+                        'message_id' in response_data,
+                        'id' in response_data
+                    ]
+                    
+                    if any(success_indicators) or response.status_code == 200:
+                        return {
+                            'success': True,
+                            'api_response': response_data,
+                            'endpoint_used': config['url']
+                        }
+                
+                last_error = response_data.get('message', f'HTTP {response.status_code}')
+                
+            except requests.exceptions.Timeout:
+                last_error = f'Timeout en {config["url"]}'
+                logger.warning(last_error)
+                continue
+            except requests.exceptions.RequestException as e:
+                last_error = f'Error de conexión en {config["url"]}: {str(e)}'
+                logger.warning(last_error)
+                continue
+            except Exception as e:
+                last_error = f'Error inesperado en {config["url"]}: {str(e)}'
+                logger.error(last_error)
+                continue
+        
+        # Si llegamos aquí, todos los endpoints fallaron
+        return {
+            'success': False,
+            'error': f'Todos los endpoints fallaron. Último error: {last_error}'
+        }
     
     def _clean_phone_number(self, phone):
         """
