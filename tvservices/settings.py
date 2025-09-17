@@ -175,6 +175,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# WaSender API Configuration
+WASENDER_API_KEY = os.environ.get('WASENDER_API_KEY', 'e736f86d08e73ce5ee6f209098dc701a60deb8157f26b79485f66e1249aabee6')
+WASENDER_SESSION_ID = os.environ.get('WASENDER_SESSION_ID', '8359')
+WASENDER_WEBHOOK_URL = os.environ.get('WASENDER_WEBHOOK_URL', 'https://www.iqautoec.com/webhook/whatsapp/')
+
+# Notification Settings
+NOTIFICATION_SETTINGS = {
+    'ENABLE_WHATSAPP_NOTIFICATIONS': os.environ.get('ENABLE_WHATSAPP_NOTIFICATIONS', 'True').lower() == 'true',
+    'NOTIFICATION_TIME_HOUR': int(os.environ.get('NOTIFICATION_TIME_HOUR', '9')),
+}
+
 # Configuración de logs
 LOGGING = {
     'version': 1,

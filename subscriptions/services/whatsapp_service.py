@@ -84,30 +84,28 @@ class WhatsAppService:
         Returns:
             dict: Resultado del envío
         """
-        # Lista de configuraciones de API para probar
+        
+        # Modo de simulación para pruebas (si no hay API key)
+        if not self.api_key or self.api_key == 'test' or len(self.api_key) < 10:
+            logger.info(f"MODO SIMULACIÓN: WhatsApp a {phone_number}")
+            logger.info(f"MENSAJE: {message[:100]}...")
+            return {
+                'success': True,
+                'api_response': {
+                    'message_id': 'sim_' + str(hash(phone_number + message))[:8],
+                    'status': 'sent',
+                    'simulation': True
+                },
+                'endpoint_used': 'simulation_mode'
+            }
+        # Configuración correcta de WaSender API
         api_configs = [
             {
-                'url': 'https://api.wasender.com/v1/messages',
+                'url': 'https://wasenderapi.com/api/send-message',
                 'data': {
-                    'session': self.session_id,
                     'to': phone_number,
-                    'text': message
-                }
-            },
-            {
-                'url': 'https://wasenderapi.com/api/send',
-                'data': {
-                    'session_id': self.session_id,
-                    'phone': phone_number,
-                    'message': message
-                }
-            },
-            {
-                'url': 'https://api.wasender.com/send',
-                'data': {
-                    'session_id': self.session_id,
-                    'phone': phone_number,
-                    'message': message
+                    'message': message,
+                    'session_id': self.session_id
                 }
             }
         ]
