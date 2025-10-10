@@ -9,6 +9,7 @@ app_name = 'callcenter'
 urlpatterns = [
     # Dashboard
     path('', views.dashboard, name='dashboard'),
+    path('', views.dashboard, name='home'),  # Alias para compatibilidad
     
     # Leads
     path('leads/', views.leads_list, name='leads_list'),
