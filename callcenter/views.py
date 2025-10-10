@@ -71,7 +71,7 @@ def dashboard(request):
     
     # Top productos
     productos_populares = Producto.objects.annotate(
-        num_leads=Count('lead_producto_interes')
+        num_leads=Count('leads')
     ).order_by('-num_leads')[:5]
     
     context = {
@@ -157,10 +157,10 @@ def lead_detail(request, lead_id):
     lead = get_object_or_404(Lead, id=lead_id)
     
     # Conversaciones del lead
-    conversaciones = lead.conversaciones.order_by('-fecha')
+    conversaciones = lead.conversaciones.order_by('-created_at')
     
     # Llamadas del lead
-    llamadas = lead.llamadas.order_by('-fecha_hora')
+    llamadas = lead.llamadas.order_by('-created_at')
     
     # Productos sugeridos
     if lead.tipo_servicio_interes:
@@ -237,8 +237,8 @@ def api_lead_stats(request):
         dia_siguiente = dia + timedelta(days=1)
         
         count = Lead.objects.filter(
-            fecha_creacion__gte=dia,
-            fecha_creacion__lt=dia_siguiente
+            created_at__gte=dia,
+            created_at__lt=dia_siguiente
         ).count()
         
         leads_por_dia.append({
