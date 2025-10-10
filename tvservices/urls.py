@@ -10,7 +10,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('home/', RedirectView.as_view(url='/', permanent=False), name='home'),  # Redirect home to dashboard
     path('', include('callcenter.urls')),  # Call Center IA como página principal
-    # path('subscriptions/', include('subscriptions.urls')),  # ELIMINADO - Solo Call Center IA
+    path('subscriptions/', include('subscriptions.urls')),  # Reactivado para evitar errores
     
     # URLs de autenticación
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
