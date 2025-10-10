@@ -7,8 +7,8 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('subscriptions.urls')),
-    path('callcenter/', include('callcenter.urls')),  # Call Center IA
+    path('', include('callcenter.urls')),  # Call Center IA como página principal
+    path('subscriptions/', include('subscriptions.urls')),  # Subscriptions en /subscriptions/
     
     # URLs de autenticación
     path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
