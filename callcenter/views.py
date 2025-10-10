@@ -13,7 +13,7 @@ from .models import (
     Operador, Producto, Lead, Conversacion, LlamadaIA, Venta,
     ClasificacionLead, EstadoLead, TipoServicio
 )
-from .ai_services import WhatsAppBotIA, LeadScorer
+# from .ai_services import WhatsAppBotIA, LeadScorer  # Comentado temporalmente
 
 
 @login_required
@@ -43,7 +43,7 @@ def dashboard(request):
     # Leads recientes (últimos 10)
     leads_recientes = Lead.objects.select_related(
         'operador_interes', 'producto_interes', 'agente_asignado'
-    ).order_by('-fecha_creacion')[:10]
+    ).order_by('-created_at')[:10]
     
     # Conversaciones recientes
     conversaciones_recientes = Conversacion.objects.select_related(
@@ -133,7 +133,7 @@ def leads_list(request):
         )
     
     # Ordenar
-    leads = leads.order_by('-score', '-fecha_creacion')
+    leads = leads.order_by('-score', '-created_at')
     
     # Obtener operadores para el filtro
     operadores = Operador.objects.all()
