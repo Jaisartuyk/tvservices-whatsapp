@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'subscriptions.apps.SubscriptionsConfig',
+    'callcenter.apps.CallcenterConfig',  # Call Center IA para Ecuador
     'crispy_forms',
     'crispy_bootstrap5',
 ]
@@ -136,7 +137,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 LANGUAGE_CODE = 'es-co'
-TIME_ZONE = 'America/Bogota'
+# Configuración para Ecuador - Guayaquil
+TIME_ZONE = 'America/Guayaquil'  # GMT-5
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
