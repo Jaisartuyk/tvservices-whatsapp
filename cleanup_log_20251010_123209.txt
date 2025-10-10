@@ -1,0 +1,16 @@
+================================================================================
+LIMPIEZA DE PROYECTO TVSERVICES - LOG DE ELIMINACIÓN
+Fecha: 2025-10-10 12:32:09
+================================================================================
+
+ARCHIVOS Y CARPETAS A ELIMINAR:
+--------------------------------------------------------------------------------
+📁 security_management (Carpeta - 147,904 bytes)
+📄 plantilla_pistoleo_mejorada.html (22,304 bytes)
+📄 lista_reportes_mejorada.html (13,535 bytes)
+📄 home_profesional.html (14,161 bytes)
+📄 dashboard_moderno.html (18,740 bytes)
+📄 reporte_auditoria_mejorado.html (13,471 bytes)
+📄 estilos_reporte.css (12,158 bytes)
+
+================================================================================
