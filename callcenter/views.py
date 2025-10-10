@@ -48,7 +48,7 @@ def dashboard(request):
     # Conversaciones recientes
     conversaciones_recientes = Conversacion.objects.select_related(
         'lead'
-    ).order_by('-fecha')[:10]
+    ).order_by('-created_at')[:10]
     
     # Ventas recientes
     ventas_recientes = Venta.objects.select_related(
