@@ -4,9 +4,11 @@ from django.urls import path, include
 from django.contrib.auth import views as auth_views
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('home/', RedirectView.as_view(url='/', permanent=False), name='home'),  # Redirect home to dashboard
     path('', include('callcenter.urls')),  # Call Center IA como página principal
     path('subscriptions/', include('subscriptions.urls')),  # Subscriptions en /subscriptions/
     
