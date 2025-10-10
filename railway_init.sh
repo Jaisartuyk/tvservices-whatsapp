@@ -23,6 +23,10 @@ python manage.py dbshell --command="SELECT table_name FROM information_schema.ta
 echo "📊 Setting up production data..."
 python manage.py setup_production
 
+# Poblar datos del Call Center
+echo "🇪🇨 Poblando datos del Call Center..."
+python manage.py populate_callcenter
+
 echo "✅ Railway initialization completed!"
 echo "🌐 Starting web server..."
 
