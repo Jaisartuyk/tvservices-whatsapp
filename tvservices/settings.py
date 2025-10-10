@@ -65,7 +65,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'subscriptions.apps.SubscriptionsConfig',
+    # 'subscriptions.apps.SubscriptionsConfig',  # ELIMINADO - Solo Call Center IA
     'callcenter.apps.CallcenterConfig',  # Call Center IA para Ecuador
     'crispy_forms',
     'crispy_bootstrap5',

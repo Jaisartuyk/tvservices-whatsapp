@@ -19,9 +19,9 @@ python manage.py migrate --noinput
 echo "🔍 Checking if tables were created..."
 python manage.py dbshell --command="SELECT table_name FROM information_schema.tables WHERE table_schema = 'public';" || echo "⚠️  Could not list tables"
 
-# Setup production data
-echo "📊 Setting up production data..."
-python manage.py setup_production
+# Setup production data - SOLO CALL CENTER IA
+# echo "📊 Setting up production data..."
+# python manage.py setup_production  # ELIMINADO - Solo Call Center IA
 
 # Poblar datos del Call Center
 echo "🇪🇨 Poblando datos del Call Center..."
