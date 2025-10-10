@@ -177,6 +177,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Login/Logout URLs
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
+
 # WaSender API Configuration
 WASENDER_API_URL = os.environ.get('WASENDER_API_URL', 'https://wasenderapi.com')
 WASENDER_API_KEY = os.environ.get('WASENDER_API_KEY', 'e736f86d08e73ce5ee6f209098dc701a60deb8157f26b79485f66e1249aabee6')

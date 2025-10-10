@@ -10,12 +10,10 @@ from .payments import handle_stripe_webhook
 
 urlpatterns = [
     # Páginas principales
-    path('', views.home, name='home'),
-    path('dashboard/', views.dashboard, name='dashboard'),
+    path('', views.home, name='subscriptions_home'),
+    path('dashboard/', views.dashboard, name='subscriptions_dashboard'),
     
-    # Autenticación
-    path('login/', auth_views.LoginView.as_view(template_name='registration/login.html'), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    # Registro (login/logout están en urls principales)
     path('register/', views.register, name='register'),
     
     # Clientes (CRUD)
