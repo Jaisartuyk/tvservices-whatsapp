@@ -12,19 +12,48 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
-    <!-- Custom CSS - Temporalmente desactivado para debug -->
-    <!-- <link rel="stylesheet" href="{% static 'css/styles.css' %}"> -->
-    
-    <!-- Estilos básicos inline temporalmente -->
+    <!-- Custom CSS -->
     <style>
         .hero-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
         .service-card { transition: transform 0.3s; }
         .service-card:hover { transform: translateY(-5px); }
         .btn-primary { background-color: #667eea; border-color: #667eea; }
         
-        /* Evitar cursor.svg */
-        * { cursor: default !important; }
-        a, button, .btn { cursor: pointer !important; }
+        /* Navbar y menús */
+        .navbar-nav .nav-item.active .nav-link {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+        .navbar-nav .nav-link i {
+            width: 20px;
+            text-align: center;
+            margin-right: 4px;
+        }
+        .dropdown-item i {
+            width: 20px;
+            text-align: center;
+            margin-right: 8px;
+            color: #666;
+        }
+        .dropdown-item:hover i {
+            color: #007bff;
+        }
+        
+        /* Breadcrumbs */
+        .breadcrumb {
+            background: transparent;
+            padding: 0.5rem 0;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        .breadcrumb-item.active {
+            color: #666;
+        }
+        .breadcrumb-item + .breadcrumb-item::before {
+            content: "›";
+            color: #aaa;
+        }
     </style>
     
     {% block extra_css %}{% endblock %}
@@ -33,7 +62,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{% url 'home' %}">TV Services</a>
+            <a class="navbar-brand" href="{% url 'home' %}"><i class="fas fa-headset me-2"></i>TV Services</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -41,20 +70,55 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'home' %}">Inicio</a>
+                        <a class="nav-link{% if request.resolver_match.url_name == 'home' %} active{% endif %}" 
+                           href="{% url 'home' %}">
+                            <i class="fas fa-home"></i> Inicio
+                        </a>
                     </li>
                     {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Panel</a>
+                        <!-- Menú desplegable de Call Center -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle{% if 'callcenter:' in request.resolver_match.namespace %} active{% endif %}" 
+                               href="#" id="callcenterDropdown" role="button" 
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-phone-alt"></i> Call Center
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="callcenterDropdown">
+                                <li>
+                                    <a class="dropdown-item{% if request.resolver_match.url_name == 'dashboard' %} active{% endif %}" 
+                                       href="{% url 'callcenter:dashboard' %}">
+                                        <i class="fas fa-chart-line"></i> Panel General
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item{% if request.resolver_match.url_name == 'leads_list' %} active{% endif %}" 
+                                       href="{% url 'callcenter:leads_list' %}">
+                                        <i class="fas fa-users"></i> Leads
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item{% if request.resolver_match.url_name == 'whatsapp_dashboard' %} active{% endif %}" 
+                                       href="{% url 'callcenter:whatsapp_dashboard' %}">
+                                        <i class="fab fa-whatsapp"></i> WhatsApp
+                                        <span class="badge bg-success rounded-pill ms-2">{{ total_conversaciones|default:"0" }}</span>
+                                    </a>
+                                </li>
+                                {% if user.is_superuser %}
+                                <li>
+                                    <a class="dropdown-item{% if request.resolver_match.url_name == 'calls_dashboard' %} active{% endif %}" 
+                                       href="{% url 'callcenter:calls_dashboard' %}">
+                                        <i class="fas fa-phone-volume"></i> Llamadas IA
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'callcenter:productos_list' %}">
+                                        <i class="fas fa-tags"></i> Productos
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'client_list' %}">Clientes</a>
-                        </li>
-                        {% if perms.subscriptions.view_service %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'service_list' %}">Servicios</a>
-                        </li>
-                        {% endif %}
                     {% endif %}
                 </ul>
                 <ul class="navbar-nav">
@@ -83,8 +147,38 @@
         </div>
     </nav>
 
+    <!-- Breadcrumbs -->
+    <div class="container mt-2">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'home' %}"><i class="fas fa-home"></i></a>
+                </li>
+                {% block breadcrumbs %}
+                {% if request.resolver_match.namespace == 'callcenter' %}
+                    <li class="breadcrumb-item">
+                        <a href="{% url 'callcenter:dashboard' %}">Call Center</a>
+                    </li>
+                    {% if request.resolver_match.url_name == 'whatsapp_dashboard' %}
+                        <li class="breadcrumb-item active">WhatsApp</li>
+                    {% elif request.resolver_match.url_name == 'calls_dashboard' %}
+                        <li class="breadcrumb-item active">Llamadas IA</li>
+                    {% elif request.resolver_match.url_name == 'leads_list' %}
+                        <li class="breadcrumb-item active">Leads</li>
+                    {% elif request.resolver_match.url_name == 'lead_detail' %}
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'callcenter:leads_list' %}">Leads</a>
+                        </li>
+                        <li class="breadcrumb-item active">Detalle de Lead</li>
+                    {% endif %}
+                {% endif %}
+                {% endblock %}
+            </ol>
+        </nav>
+    </div>
+
     <!-- Mensajes -->
-    <div class="container mt-3">
+    <div class="container">
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
@@ -96,7 +190,7 @@
     </div>
 
     <!-- Contenido principal -->
-    <main class="container py-4">
+    <main class="container py-3">
         {% block content %}{% endblock %}
     </main>
 
