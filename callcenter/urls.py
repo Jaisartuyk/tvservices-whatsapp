@@ -20,4 +20,6 @@ urlpatterns = [
     # APIs para gráficos
     path('api/lead-stats/', views.api_lead_stats, name='api_lead_stats'),
     path('api/ventas-stats/', views.api_ventas_stats, name='api_ventas_stats'),
+    # API para generar script de llamada (IA)
+    path('api/generate-script/', views.api_generate_script, name='api_generate_script'),
 ]

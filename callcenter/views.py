@@ -13,7 +13,8 @@ from .models import (
     Operador, Producto, Lead, Conversacion, LlamadaIA, Venta,
     ClasificacionLead, EstadoLead, TipoServicio
 )
-# from .ai_services import WhatsAppBotIA, LeadScorer  # Comentado temporalmente
+from .ai_services import CallAI
+from django.views.decorators.http import require_POST
 
 
 @login_required
@@ -293,3 +294,39 @@ def api_ventas_stats(request):
     return JsonResponse({
         'ventas_por_mes': ventas_por_mes
     })
+
+
+@login_required
+@require_POST
+def api_generate_script(request):
+    """Genera un script de llamada para un lead usando CallAI.generar_script_llamada
+
+    Espera parámetros POST: lead_id (int), tipo_llamada (opcional, 'SALIENTE'|'ENTRANTE')
+    """
+    try:
+        # soportar JSON body o form-encoded
+        data = request.POST.dict()
+        if not data:
+            import json
+            try:
+                data = json.loads(request.body.decode('utf-8') or '{}')
+            except Exception:
+                data = {}
+
+        lead_id = data.get('lead_id')
+        tipo = data.get('tipo_llamada', 'SALIENTE')
+
+        if not lead_id:
+            return JsonResponse({'success': False, 'error': 'lead_id es requerido'}, status=400)
+
+        lead = Lead.objects.get(id=int(lead_id))
+        script = CallAI.generar_script_llamada(lead, tipo)
+
+        return JsonResponse({'success': True, 'script': script})
+
+    except Lead.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Lead no encontrado'}, status=404)
+    except Exception as e:
+        import logging
+        logging.exception('Error generando script')
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

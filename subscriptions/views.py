@@ -1127,3 +1127,151 @@ def test_whatsapp_direct(request):
         'success': False,
         'error': 'Método no permitido. Use POST.'
     })
+
+
+@csrf_exempt
+def handle_wasender_webhook(request):
+    """
+    Endpoint para recibir webhooks de WaSender (mensajes entrantes de WhatsApp).
+
+    Flujo:
+    - Verifica secret en header o en payload usando `WASENDER_WEBHOOK_SECRET`.
+    - Extrae teléfono y texto del payload (manejo tolerante a distintos formatos).
+    - Busca o crea un `Cliente` asociado al teléfono.
+    - Envuelve el cliente en un objeto ligero (LeadProxy) compatible con `WhatsAppBotIA`.
+    - Llama a la IA para procesar el mensaje y genera una respuesta.
+    - Envía la respuesta usando `WhatsAppService.send_message`.
+
+    Nota: Este handler es intencionalmente simple (sin persistencia de conversación).
+    Para producción recomendamos persistir `Conversation`/`Message` y procesar asíncronamente.
+    """
+    import json
+    import logging
+    logger = logging.getLogger(__name__)
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Use POST'}, status=405)
+
+    try:
+        body = request.body.decode('utf-8') if request.body else ''
+        payload = json.loads(body) if body else request.POST.dict()
+    except Exception:
+        payload = request.POST.dict()
+
+    # Verificación del secret (header o campo en payload)
+    header_secret = request.headers.get('X-Wasender-Secret') or request.META.get('HTTP_X_WASENDER_SECRET')
+    configured_secret = getattr(settings, 'WASENDER_WEBHOOK_SECRET', '')
+
+    if configured_secret:
+        if not header_secret and not payload.get('secret'):
+            logger.warning('Webhook recibido sin secret')
+            return HttpResponseForbidden('Missing webhook secret')
+
+        provided = header_secret or payload.get('secret')
+        if provided != configured_secret:
+            logger.warning('Webhook secret inválido')
+            return HttpResponseForbidden('Invalid webhook secret')
+
+    # Extraer texto y número (soportar varios formatos)
+    text = ''
+    phone = ''
+
+    # Campos comunes
+    for key in ('text', 'message', 'body', 'text_body'):
+        if key in payload and payload.get(key):
+            text = payload.get(key)
+            break
+
+    # Estructuras como messages: [{ 'text': { 'body': '...' } }]
+    if not text and isinstance(payload.get('messages'), list) and payload['messages']:
+        m = payload['messages'][0]
+        if isinstance(m.get('text'), dict):
+            text = m['text'].get('body', '')
+        else:
+            text = m.get('text') or m.get('body') or ''
+
+    # Números posibles
+    for key in ('from', 'from_number', 'wa_id', 'sender', 'phone', 'msisdn'):
+        if key in payload and payload.get(key):
+            phone = str(payload.get(key))
+            break
+
+    # Fallback: intentar leer request.POST fields
+    if not phone:
+        phone = request.POST.get('from') or request.POST.get('phone') or ''
+
+    # Normalizar teléfono
+    clean_digits = ''.join(filter(str.isdigit, phone))
+    clean_phone = ''
+    if clean_digits:
+        if clean_digits.startswith('593') or clean_digits.startswith('57'):
+            clean_phone = '+' + clean_digits
+        elif len(clean_digits) == 9:
+            # asumir Ecuador si vienen 9 dígitos locales
+            clean_phone = '+593' + clean_digits
+        else:
+            clean_phone = '+' + clean_digits
+
+    # Buscar cliente por teléfono (coincidencia flexible usando últimos dígitos)
+    cliente = None
+    try:
+        if clean_phone:
+            tail = clean_digits[-9:]
+            candidatos = Cliente.objects.filter(telefono__icontains=tail)
+            if candidatos.exists():
+                cliente = candidatos.first()
+
+        if not cliente:
+            # Crear cliente temporal asignado al primer superuser o primer usuario
+            from django.contrib.auth import get_user_model
+            User = get_user_model()
+            admin = User.objects.filter(is_superuser=True).first() or User.objects.first()
+            cliente = Cliente.objects.create(
+                creado_por=admin,
+                nombres='WhatsApp',
+                apellidos='Usuario',
+                telefono=clean_phone
+            )
+    except Exception as e:
+        logger.exception(f'Error buscando/creando Cliente para {clean_phone}: {e}')
+        return JsonResponse({'success': False, 'error': 'Error interno al gestionar cliente'}, status=500)
+
+    # Construir un objeto ligero compatible con WhatsAppBotIA
+    class LeadProxy:
+        def __init__(self, cliente):
+            self.nombre = cliente.nombres or cliente.nombre_completo
+            # Campos que usa la IA; mantener None si no existen
+            self.tipo_servicio_interes = None
+            self.presupuesto_estimado = None
+            self.zona = cliente.direccion or None
+            self.direccion = cliente.direccion or None
+            # Proveer conversacoes.count()
+            class ConvCounter:
+                def count(self_inner):
+                    return 0
+            self.conversaciones = ConvCounter()
+
+    lead = LeadProxy(cliente)
+
+    # Procesar el mensaje con la IA heurística existente
+    try:
+        from callcenter.ai_services import WhatsAppBotIA
+        bot = WhatsAppBotIA()
+        result = bot.procesar_mensaje(lead, text or '')
+    except Exception as e:
+        logger.exception(f'Error procesando mensaje con IA: {e}')
+        return JsonResponse({'success': False, 'error': 'Error al procesar mensaje'}, status=500)
+
+    # Enviar la respuesta usando el servicio de WhatsApp
+    try:
+        from .services import WhatsAppService
+        wa = WhatsAppService()
+        respuesta_text = result.get('respuesta') if isinstance(result, dict) else str(result)
+        send_result = wa.send_message(clean_phone, respuesta_text)
+        logger.info(f'Webhook procesado. Envío a {clean_phone}: {send_result}')
+    except Exception as e:
+        logger.exception(f'Error enviando respuesta WhatsApp: {e}')
+        # No fallar el webhook: responder 200 pero indicar fallo en envío
+        return JsonResponse({'success': True, 'handled': True, 'sent': False, 'error': str(e), 'ia_result': result})
+
+    return JsonResponse({'success': True, 'handled': True, 'sent': True, 'ia_result': result})

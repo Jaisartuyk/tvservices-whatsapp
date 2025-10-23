@@ -43,6 +43,8 @@ urlpatterns = [
     
     # Webhooks de Stripe
     path('webhook/stripe/', csrf_exempt(handle_stripe_webhook), name='stripe_webhook'),
+    # Webhook para recibir mensajes entrantes de WaSender (WhatsApp)
+    path('webhook/whatsapp/', csrf_exempt(views.handle_wasender_webhook), name='wasender_webhook'),
     
     # Checkout y pagos
     path('checkout/<int:service_id>/', views.checkout, name='checkout'),

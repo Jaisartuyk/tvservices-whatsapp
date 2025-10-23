@@ -230,11 +230,19 @@
                                                 <span class="badge badge-cold">❄️ COLD</span>
                                             {% endif %}
                                         </td>
-                                        <td>
-                                            <a href="{% url 'callcenter:lead_detail' lead.id %}" class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
-                                        </td>
+                                                <td>
+                                                    <div class="btn-group" role="group" aria-label="Acciones">
+                                                        <a href="{% url 'callcenter:lead_detail' lead.id %}" class="btn btn-sm btn-outline-primary" title="Ver">
+                                                            <i class="bi bi-eye"></i>
+                                                        </a>
+                                                        <button class="btn btn-sm btn-outline-success" onclick="onCallClick({{ lead.id }})" title="Iniciar Llamada">
+                                                            <i class="bi bi-telephone-fill"></i>
+                                                        </button>
+                                                        <button class="btn btn-sm btn-outline-info" onclick="onMessageClick({{ lead.id }})" title="Enviar Mensaje">
+                                                            <i class="bi bi-chat-dots-fill"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
                                     </tr>
                                     {% empty %}
                                     <tr>
@@ -277,11 +285,29 @@
         </div>
     </div>
 
+        <!-- Modal para mostrar script de llamada / acciones rápidas -->
+        <div class="modal fade" id="actionModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="actionModalLabel">Acción rápida</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="actionContent">Cargando...</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Gráfico de distribución de leads
         const leadsCtx = document.getElementById('leadsChart').getContext('2d');
-        new Chart(leadsCtx, {
+        const leadsChartInstance = new Chart(leadsCtx, {
             type: 'doughnut',
             data: {
                 labels: ['HOT 🔥', 'WARM 🌡️', 'COLD ❄️'],
@@ -304,7 +330,7 @@
 
         // Gráfico de leads por operador
         const operadoresCtx = document.getElementById('operadoresChart').getContext('2d');
-        new Chart(operadoresCtx, {
+        const operadoresChartInstance = new Chart(operadoresCtx, {
             type: 'bar',
             data: {
                 labels: [{% for item in leads_por_operador %}'{{ item.operador_interes__nombre }}'{% if not forloop.last %},{% endif %}{% endfor %}],
@@ -333,6 +359,90 @@
                 }
             }
         });
+
+        // Función para actualizar gráficos desde la API (polling cada 30s)
+        async function fetchAndUpdateStats() {
+            try {
+                const res = await fetch('{% url "callcenter:api_lead_stats" %}');
+                if (!res.ok) return;
+                const data = await res.json();
+
+                // actualizar doughnut
+                leadsChartInstance.data.datasets[0].data = [data.distribucion.hot, data.distribucion.warm, data.distribucion.cold];
+                leadsChartInstance.update();
+
+                // actualizar barras (si vienen operadores dinámicos)
+                const labels = data.leads_por_dia.map(d => d.fecha);
+                // mantendremos operadores tal cual para este PoC; opcionalmente podríamos llamar otra API
+                operadoresChartInstance.update();
+            } catch (e) {
+                console.error('Error actualizando stats:', e);
+            }
+        }
+
+        // Iniciar polling
+        setInterval(fetchAndUpdateStats, 30000);
+
+        // Acciones rápidas: generar script y mostrar modal
+        function onCallClick(leadId) {
+            const modal = new bootstrap.Modal(document.getElementById('actionModal'));
+            document.getElementById('actionContent').innerText = 'Generando script...';
+            modal.show();
+
+            fetch('{% url "callcenter:api_generate_script" %}', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+                body: JSON.stringify({ lead_id: leadId, tipo_llamada: 'SALIENTE' })
+            }).then(r => r.json()).then(data => {
+                if (data.success) {
+                    document.getElementById('actionContent').innerHTML = '<pre style="white-space:pre-wrap;">' + data.script + '</pre>';
+                } else {
+                    document.getElementById('actionContent').innerText = 'Error: ' + (data.error || 'Desconocido');
+                }
+            }).catch(err => {
+                document.getElementById('actionContent').innerText = 'Error generando script';
+            });
+        }
+
+        function onMessageClick(leadId) {
+            const modal = new bootstrap.Modal(document.getElementById('actionModal'));
+            document.getElementById('actionContent').innerText = 'Cargando opciones de mensaje...';
+            modal.show();
+
+            // Por ahora mostramos una plantilla simple; más tarde puede integrarse con la IA
+            const template = `Hola, te contacto desde TV Services. ¿En qué puedo ayudarte? Responde con tu zona y presupuesto.`;
+            document.getElementById('actionContent').innerHTML = '<div class="mb-3"><textarea class="form-control" id="quickMessage" rows="4">' + template + '</textarea></div><div class="text-end"><button class="btn btn-primary" onclick="sendQuickMessage(' + leadId + ')">Enviar</button></div>';
+        }
+
+        async function sendQuickMessage(leadId) {
+            const btn = event.target;
+            const text = document.getElementById('quickMessage').value;
+            document.getElementById('actionContent').innerText = 'Enviando...';
+            try {
+                // Llamar endpoint que podría enviar el mensaje (a implementar); por ahora solo simulamos
+                // fetch('/subscriptions/send_quick_message/', { method: 'POST', ... })
+                await new Promise(r => setTimeout(r, 800));
+                document.getElementById('actionContent').innerText = 'Mensaje enviado (simulado)';
+            } catch (e) {
+                document.getElementById('actionContent').innerText = 'Error enviando mensaje';
+            }
+        }
+
+        // Helper: obtener cookie CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
     </script>
 </body>
 </html>
