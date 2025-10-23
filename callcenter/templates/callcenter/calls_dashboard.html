@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Llamadas IA - Administrador{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h1>Monitoreo de Llamadas IA</h1>
+  <p>Total llamadas: {{ llamadas_total }} | Exitosas: {{ llamadas_exitosas }}</p>
+
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th>Lead</th>
+        <th>Duración</th>
+        <th>Resultado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for call in llamadas_recientes %}
+      <tr>
+        <td>{{ call.created_at }}</td>
+        <td><a href="{% url 'callcenter:lead_detail' call.lead.id %}">{{ call.lead.nombre_completo }}</a></td>
+        <td>{{ call.duracion|default:'-' }}</td>
+        <td>{{ call.resultado|default:'-' }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4">No hay llamadas registradas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -22,4 +22,10 @@ urlpatterns = [
     path('api/ventas-stats/', views.api_ventas_stats, name='api_ventas_stats'),
     # API para generar script de llamada (IA)
     path('api/generate-script/', views.api_generate_script, name='api_generate_script'),
+    # APIs para dashboard en tiempo real
+    path('api/recent-conversations/', views.api_recent_conversations, name='api_recent_conversations'),
+    path('api/assign-conversation/', views.api_assign_conversation, name='api_assign_conversation'),
+    # Dashboards específicos
+    path('whatsapp-dashboard/', views.whatsapp_dashboard, name='whatsapp_dashboard'),
+    path('calls-dashboard/', views.calls_dashboard, name='calls_dashboard'),
 ]

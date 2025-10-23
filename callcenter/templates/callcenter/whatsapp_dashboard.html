@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}WhatsApp - Agent Dashboard{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h1>WhatsApp - Panel de Agentes</h1>
+  <p>Conversaciones recientes: {{ total_conversaciones }} (sin asignar: {{ sin_asignar }}, abiertas: {{ abiertas }})</p>
+
+  <div class="list-group">
+    {% for conv in recientes %}
+      <a href="{% url 'callcenter:lead_detail' conv.lead.id %}" class="list-group-item list-group-item-action">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{ conv.lead.nombre_completo }}</h5>
+          <small>{{ conv.updated_at }}</small>
+        </div>
+        <p class="mb-1">Último mensaje: {{ conv.ultimo_mensaje|default:'(sin mensajes)' }}</p>
+        <small>Lead ID: {{ conv.lead.id }} - Agente: {{ conv.lead.agente_asignado }}</small>
+      </a>
+    {% empty %}
+      <div class="alert alert-info">No hay conversaciones recientes.</div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

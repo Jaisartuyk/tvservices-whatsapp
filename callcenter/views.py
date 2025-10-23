@@ -15,6 +15,7 @@ from .models import (
 )
 from .ai_services import CallAI
 from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET
 
 
 @login_required
@@ -97,6 +98,45 @@ def dashboard(request):
     }
     
     return render(request, 'callcenter/dashboard.html', context)
+
+
+@login_required
+def whatsapp_dashboard(request):
+    """Dashboard para agentes: conversaciones de WhatsApp y cola de mensajes."""
+    # Conversaciones recientes y no asignadas
+    recientes = Conversacion.objects.select_related('lead').order_by('-updated_at')[:50]
+    sin_asignar = Conversacion.objects.filter(lead__agente_asignado__isnull=True).count()
+
+    # Estadísticas rápidas
+    total_conversaciones = Conversacion.objects.count()
+    abiertas = Conversacion.objects.filter(estado='open').count() if hasattr(Conversacion, 'estado') else 0
+
+    context = {
+        'recientes': recientes,
+        'sin_asignar': sin_asignar,
+        'total_conversaciones': total_conversaciones,
+        'abiertas': abiertas,
+    }
+    return render(request, 'callcenter/whatsapp_dashboard.html', context)
+
+
+@login_required
+def calls_dashboard(request):
+    """Vista administrativa para monitorear llamadas IA y métricas globales."""
+    if not request.user.is_superuser:
+        # Solo administradores pueden ver métricas globales
+        return redirect('callcenter:dashboard')
+
+    llamadas_recientes = LlamadaIA.objects.select_related('lead').order_by('-created_at')[:50]
+    llamadas_total = LlamadaIA.objects.count()
+    llamadas_exitosas = LlamadaIA.objects.filter(resultado='success').count() if hasattr(LlamadaIA, 'resultado') else 0
+
+    context = {
+        'llamadas_recientes': llamadas_recientes,
+        'llamadas_total': llamadas_total,
+        'llamadas_exitosas': llamadas_exitosas,
+    }
+    return render(request, 'callcenter/calls_dashboard.html', context)
 
 
 @login_required
@@ -329,4 +369,67 @@ def api_generate_script(request):
     except Exception as e:
         import logging
         logging.exception('Error generando script')
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@require_GET
+def api_recent_conversations(request):
+    """Devuelve las conversaciones recientes en JSON (para polling en el dashboard de agentes)."""
+    try:
+        limit = int(request.GET.get('limit', 20))
+    except Exception:
+        limit = 20
+
+    convers = Conversacion.objects.select_related('lead', 'agente_humano').order_by('-created_at')[:limit]
+    data = []
+    for c in convers:
+        data.append({
+            'id': c.id,
+            'lead_id': c.lead.id,
+            'lead_nombre': c.lead.nombre_completo,
+            'mensaje_cliente': (c.mensaje_cliente[:200] + '...') if c.mensaje_cliente and len(c.mensaje_cliente) > 200 else (c.mensaje_cliente or ''),
+            'respuesta_sistema': c.respuesta_sistema or '',
+            'created_at': c.created_at.isoformat(),
+            'agente_id': c.agente_humano.id if c.agente_humano else None,
+            'agente_nombre': c.agente_humano.get_full_name() if c.agente_humano else None,
+        })
+
+    return JsonResponse({'success': True, 'conversaciones': data})
+
+
+@login_required
+@require_POST
+def api_assign_conversation(request):
+    """Asignar una conversación al usuario actual (POST: conv_id)."""
+    try:
+        data = request.POST.dict() or {}
+        if not data:
+            import json
+            try:
+                data = json.loads(request.body.decode('utf-8') or '{}')
+            except Exception:
+                data = {}
+
+        conv_id = data.get('conv_id') or data.get('id')
+        if not conv_id:
+            return JsonResponse({'success': False, 'error': 'conv_id es requerido'}, status=400)
+
+        conv = Conversacion.objects.select_related('lead').get(id=int(conv_id))
+        conv.agente_humano = request.user
+        conv.save()
+
+        # opcional: asignar el lead al agente
+        lead = conv.lead
+        if not lead.agente_asignado:
+            lead.agente_asignado = request.user
+            lead.save(update_fields=['agente_asignado'])
+
+        return JsonResponse({'success': True, 'conv_id': conv.id, 'assigned_to': request.user.get_full_name() or request.user.username})
+
+    except Conversacion.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Conversación no encontrada'}, status=404)
+    except Exception as e:
+        import logging
+        logging.exception('Error asignando conversación')
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
