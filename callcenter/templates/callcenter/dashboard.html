@@ -71,6 +71,12 @@
                 <i class="bi bi-headset"></i> Call Center IA - Ecuador 🇪🇨
             </span>
             <div class="d-flex align-items-center text-white">
+                <a href="{% url 'callcenter:whatsapp_dashboard' %}" class="btn btn-sm btn-outline-light me-2">
+                    <i class="bi bi-whatsapp"></i> WhatsApp
+                </a>
+                <a href="{% url 'callcenter:calls_dashboard' %}" class="btn btn-sm btn-outline-light me-2">
+                    <i class="bi bi-telephone"></i> Llamadas
+                </a>
                 <span class="me-3"><i class="bi bi-person-circle"></i> {{ user.username }}</span>
                 <a href="{% url 'admin:index' %}" class="btn btn-light btn-sm">
                     <i class="bi bi-gear"></i> Admin

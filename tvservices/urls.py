@@ -9,9 +9,9 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('home/', RedirectView.as_view(url='/', permanent=False), name='home'),  # Redirect home to dashboard
-     path('', include('callcenter.urls')),  # Call Center IA como página principal
-     # También exponer bajo /callcenter/ para compatibilidad con enlaces existentes
-     path('callcenter/', include('callcenter.urls')),
+          # Montar el callcenter bajo /callcenter/ y redirigir la raíz a ese prefijo
+          path('', RedirectView.as_view(url='/callcenter/', permanent=False), name='root_redirect'),
+          path('callcenter/', include('callcenter.urls')),
      path('subscriptions/', include('subscriptions.urls')),  # Reactivado para evitar errores
     
     # URLs de autenticación

@@ -104,7 +104,8 @@ def dashboard(request):
 def whatsapp_dashboard(request):
     """Dashboard para agentes: conversaciones de WhatsApp y cola de mensajes."""
     # Conversaciones recientes y no asignadas
-    recientes = Conversacion.objects.select_related('lead').order_by('-updated_at')[:50]
+    # Nota: Conversacion tiene `created_at` pero no `updated_at` — usar created_at
+    recientes = Conversacion.objects.select_related('lead').order_by('-created_at')[:50]
     sin_asignar = Conversacion.objects.filter(lead__agente_asignado__isnull=True).count()
 
     # Estadísticas rápidas
