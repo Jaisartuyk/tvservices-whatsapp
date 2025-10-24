@@ -1,5 +1,447 @@
-{% extends 'callcenter/dashboard.html' %}
+{% extends 'base.html' %}
+{% block title %}Gestión de Leads{% endblock %}
+
 {% block content %}
-<h2>Lista de Leads</h2>
-<p>Página en construcción...</p>
+<div class="container-fluid py-4">
+	<!-- Header y Filtros -->
+	<div class="card shadow-sm mb-4">
+		<div class="card-body">
+			<div class="row align-items-center g-3">
+				<div class="col-md-6">
+					<h4 class="mb-0">
+						<i class="fas fa-users text-primary me-2"></i>
+						Gestión de Leads
+					</h4>
+				</div>
+				<div class="col-md-6">
+					<form class="d-flex" method="get">
+						<div class="input-group">
+							<input type="text" class="form-control" placeholder="Buscar leads..." 
+								   name="q" value="{{ busqueda }}">
+							<button class="btn btn-primary" type="submit">
+								<i class="fas fa-search"></i>
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			<!-- Filtros Avanzados -->
+			<div class="collapse mt-3" id="filtrosAvanzados">
+				<div class="row g-3">
+					<div class="col-md-3">
+						<label class="form-label">Clasificación</label>
+						<select class="form-select" name="clasificacion" id="filtroClasificacion">
+							<option value="">Todas</option>
+							<option value="HOT" {% if clasificacion_actual == 'HOT' %}selected{% endif %}>Hot</option>
+							<option value="WARM" {% if clasificacion_actual == 'WARM' %}selected{% endif %}>Warm</option>
+							<option value="COLD" {% if clasificacion_actual == 'COLD' %}selected{% endif %}>Cold</option>
+						</select>
+					</div>
+					<div class="col-md-3">
+						<label class="form-label">Estado</label>
+						<select class="form-select" name="estado" id="filtroEstado">
+							<option value="">Todos</option>
+							<option value="NUEVO" {% if estado_actual == 'NUEVO' %}selected{% endif %}>Nuevo</option>
+							<option value="EN_SEGUIMIENTO" {% if estado_actual == 'EN_SEGUIMIENTO' %}selected{% endif %}>En Seguimiento</option>
+							<option value="CONVERTIDO" {% if estado_actual == 'CONVERTIDO' %}selected{% endif %}>Convertido</option>
+						</select>
+					</div>
+					<div class="col-md-3">
+						<label class="form-label">Operador</label>
+						<select class="form-select" name="operador" id="filtroOperador">
+							<option value="">Todos</option>
+							{% for op in operadores %}
+							<option value="{{ op.id }}" {% if operador_actual == op.id|stringformat:"s" %}selected{% endif %}>
+								{{ op.nombre }}
+							</option>
+							{% endfor %}
+						</select>
+					</div>
+					<div class="col-md-3 d-flex align-items-end">
+						<button type="button" class="btn btn-primary w-100" onclick="aplicarFiltros()">
+							<i class="fas fa-filter me-2"></i>
+							Aplicar Filtros
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Barra de Acciones -->
+			<div class="d-flex justify-content-between align-items-center mt-3">
+				<button class="btn btn-link text-decoration-none" type="button" 
+						data-bs-toggle="collapse" data-bs-target="#filtrosAvanzados">
+					<i class="fas fa-sliders-h me-1"></i>
+					Filtros Avanzados
+				</button>
+				<div class="btn-group">
+					<button type="button" class="btn btn-outline-primary" onclick="exportarLeads()">
+						<i class="fas fa-file-export me-1"></i>
+						Exportar
+					</button>
+					<button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#importarModal">
+						<i class="fas fa-file-import me-1"></i>
+						Importar
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Lista de Leads -->
+	<div class="card shadow-sm">
+		<div class="card-body p-0">
+			<div class="table-responsive">
+				<table class="table table-hover align-middle mb-0">
+					<thead class="bg-light">
+						<tr>
+							<th>Lead</th>
+							<th>Contacto</th>
+							<th>Operador</th>
+							<th>Score</th>
+							<th>Estado</th>
+							<th>Última Actividad</th>
+							<th>Acciones</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for lead in leads %}
+						<tr>
+							<td>
+								<div class="d-flex align-items-center">
+									<div class="avatar avatar-sm me-3 bg-{{ lead.clasificacion|lower }}-subtle rounded-circle">
+										{{ lead.nombre_completo|slice:":1" }}
+									</div>
+									<div>
+										<h6 class="mb-0">{{ lead.nombre_completo }}</h6>
+										<span class="badge bg-{{ lead.clasificacion|lower }}">
+											{{ lead.clasificacion }}
+										</span>
+									</div>
+								</div>
+							</td>
+							<td>
+								<div class="vstack gap-1">
+									{% if lead.telefono %}
+									<small><i class="fas fa-phone me-1"></i>{{ lead.telefono }}</small>
+									{% endif %}
+									{% if lead.email %}
+									<small><i class="fas fa-envelope me-1"></i>{{ lead.email }}</small>
+									{% endif %}
+								</div>
+							</td>
+							<td>
+								{% if lead.operador_interes %}
+									<div class="d-flex align-items-center">
+										<img src="{{ lead.operador_interes.logo_url|default:'#' }}" 
+											 alt="{{ lead.operador_interes.nombre }}"
+											 class="avatar avatar-xs me-2">
+										<span>{{ lead.operador_interes.nombre }}</span>
+									</div>
+								{% else %}
+									<span class="badge bg-secondary">Sin asignar</span>
+								{% endif %}
+							</td>
+							<td>
+								<div class="d-flex align-items-center">
+									<div class="progress flex-grow-1" style="height: 4px;">
+										<div class="progress-bar bg-{{ lead.score_color|default:'secondary' }}" 
+											 style="width: {{ lead.score }}%">
+										</div>
+									</div>
+									<span class="ms-2 text-{{ lead.score_color|default:'secondary' }}">
+										{{ lead.score }}
+									</span>
+								</div>
+							</td>
+							<td>
+								{% if lead.estado == 'NUEVO' %}
+									<span class="badge bg-info">
+										<i class="fas fa-star me-1"></i> Nuevo
+									</span>
+								{% elif lead.estado == 'EN_SEGUIMIENTO' %}
+									<span class="badge bg-primary">
+										<i class="fas fa-user-clock me-1"></i> En Seguimiento
+									</span>
+								{% elif lead.estado == 'CONVERTIDO' %}
+									<span class="badge bg-success">
+										<i class="fas fa-check-circle me-1"></i> Convertido
+									</span>
+								{% else %}
+									<span class="badge bg-secondary">
+										{{ lead.estado|default:"Pendiente" }}
+									</span>
+								{% endif %}
+							</td>
+							<td>
+								<div class="vstack small">
+									<span class="text-muted">
+										{{ lead.ultima_actividad|date:"d/m/Y H:i"|default:"Sin actividad" }}
+									</span>
+									{% if lead.tipo_ultima_actividad %}
+										<span class="badge bg-light text-dark">
+											{{ lead.tipo_ultima_actividad }}
+										</span>
+									{% endif %}
+								</div>
+							</td>
+							<td>
+								<div class="btn-group">
+									<a href="{% url 'callcenter:lead_detail' lead.id %}" 
+									   class="btn btn-sm btn-light" title="Ver Detalles">
+										<i class="fas fa-eye"></i>
+									</a>
+									<button type="button" class="btn btn-sm btn-primary" 
+											onclick="iniciarLlamada({{ lead.id }})" title="Llamar">
+										<i class="fas fa-phone-alt"></i>
+									</button>
+									<button type="button" class="btn btn-sm btn-success"
+											onclick="enviarWhatsapp({{ lead.id }})" title="WhatsApp">
+										<i class="fab fa-whatsapp"></i>
+									</button>
+									<button type="button" class="btn btn-sm btn-info"
+											onclick="verHistorial({{ lead.id }})" title="Ver Historial">
+										<i class="fas fa-history"></i>
+									</button>
+								</div>
+							</td>
+						</tr>
+						{% empty %}
+						<tr>
+							<td colspan="7" class="text-center py-5">
+								<div class="text-muted">
+									<i class="fas fa-users fa-3x mb-3"></i>
+									<p class="mb-0">No se encontraron leads</p>
+									{% if busqueda %}
+									<small>Intenta con otros filtros de búsqueda</small>
+									{% endif %}
+								</div>
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+        
+		<!-- Paginación -->
+		{% if leads.has_other_pages %}
+		<div class="card-footer bg-white">
+			<nav aria-label="Paginación de leads">
+				<ul class="pagination justify-content-center mb-0">
+					{% if leads.has_previous %}
+					<li class="page-item">
+						<a class="page-link" href="?page={{ leads.previous_page_number }}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+							<i class="fas fa-chevron-left"></i>
+						</a>
+					</li>
+					{% endif %}
+
+					{% for num in leads.paginator.page_range %}
+					{% if num == leads.number %}
+					<li class="page-item active">
+						<span class="page-link">{{ num }}</span>
+					</li>
+					{% elif num > leads.number|add:'-3' and num < leads.number|add:'3' %}
+					<li class="page-item">
+						<a class="page-link" href="?page={{ num }}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+							{{ num }}
+						</a>
+					</li>
+					{% endif %}
+					{% endfor %}
+
+					{% if leads.has_next %}
+					<li class="page-item">
+						<a class="page-link" href="?page={{ leads.next_page_number }}{% if busqueda %}&q={{ busqueda }}{% endif %}">
+							<i class="fas fa-chevron-right"></i>
+						</a>
+					</li>
+					{% endif %}
+				</ul>
+			</nav>
+		</div>
+		{% endif %}
+	</div>
+</div>
+
+<!-- Modal de Script -->
+<div class="modal fade" id="scriptModal" tabindex="-1">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">
+					<i class="fas fa-file-alt text-primary me-2"></i>
+					Script de Llamada
+				</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<div class="bg-light p-3 rounded">
+					<div id="scriptContent" class="font-monospace"></div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+				<button type="button" class="btn btn-primary" id="copyScript">
+					<i class="fas fa-copy me-1"></i> Copiar
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal de Historial -->
+<div class="modal fade" id="historialModal" tabindex="-1">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">
+					<i class="fas fa-history text-info me-2"></i>
+					Historial del Lead
+				</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body p-0">
+				<div id="historialContent">
+					<!-- El contenido se cargará dinámicamente -->
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Modal de Importación -->
+<div class="modal fade" id="importarModal" tabindex="-1">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">
+					<i class="fas fa-file-import text-success me-2"></i>
+					Importar Leads
+				</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+			<div class="modal-body">
+				<form id="importForm">
+					<div class="mb-3">
+						<label class="form-label">Archivo CSV/Excel</label>
+						<input type="file" class="form-control" accept=".csv,.xlsx" required>
+					</div>
+					<div class="mb-3">
+						<label class="form-label">Operador por defecto</label>
+						<select class="form-select">
+							<option value="">Seleccionar...</option>
+							{% for op in operadores %}
+							<option value="{{ op.id }}">{{ op.nombre }}</option>
+							{% endfor %}
+						</select>
+					</div>
+				</form>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+				<button type="button" class="btn btn-success" onclick="procesarImportacion()">
+					<i class="fas fa-check me-1"></i> Importar
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+	// Aplicar filtros
+	window.aplicarFiltros = function() {
+		const clasificacion = document.getElementById('filtroClasificacion').value;
+		const estado = document.getElementById('filtroEstado').value;
+		const operador = document.getElementById('filtroOperador').value;
+		const busqueda = document.querySelector('input[name="q"]').value;
+
+		let url = window.location.pathname + '?';
+		if (clasificacion) url += `&clasificacion=${clasificacion}`;
+		if (estado) url += `&estado=${estado}`;
+		if (operador) url += `&operador=${operador}`;
+		if (busqueda) url += `&q=${encodeURIComponent(busqueda)}`;
+
+		window.location.href = url.replace('?&', '?');
+	};
+
+	// Iniciar llamada y generar script
+	window.iniciarLlamada = function(leadId) {
+		fetch(`/callcenter/api/generate-script/`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+			},
+			body: JSON.stringify({
+				lead_id: leadId,
+				tipo_llamada: 'SALIENTE'
+			})
+		})
+		.then(response => response.json())
+		.then(data => {
+			if (data.success) {
+				document.getElementById('scriptContent').innerText = data.script;
+				new bootstrap.Modal(document.getElementById('scriptModal')).show();
+			} else {
+				alert('Error generando script: ' + data.error);
+			}
+		});
+	};
+
+	// Ver historial
+	window.verHistorial = function(leadId) {
+		document.getElementById('historialContent').innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div></div>';
+		new bootstrap.Modal(document.getElementById('historialModal')).show();
+
+		fetch(`/callcenter/api/lead-history/${leadId}/`)
+			.then(response => response.json())
+			.then(data => {
+				if (data.success) {
+					// Renderizar timeline
+					const html = data.historial.map(item => `\n                        <div class="timeline-item p-3 border-bottom">\n                            <div class="d-flex">\n                                <div class="timeline-icon bg-${item.tipo_color} me-3">\n                                    <i class="fas fa-${item.icono}"></i>\n                                </div>\n                                <div>\n                                    <h6 class="mb-1">${item.titulo}</h6>\n                                    <p class="mb-0 text-muted">${item.descripcion}</p>\n                                    <small class="text-muted">${item.fecha}</small>\n                                </div>\n                            </div>\n                        </div>\n                    `).join('');
+					document.getElementById('historialContent').innerHTML = html || '<div class="text-center py-4">No hay historial disponible</div>';
+				} else {
+					document.getElementById('historialContent').innerHTML = '<div class="text-center py-4 text-danger">Error cargando historial</div>';
+				}
+			});
+	};
+
+	// Copiar script
+	document.getElementById('copyScript')?.addEventListener('click', function() {
+		const content = document.getElementById('scriptContent').innerText;
+		navigator.clipboard.writeText(content).then(() => {
+			this.innerHTML = '<i class="fas fa-check me-1"></i> Copiado';
+			setTimeout(() => {
+				this.innerHTML = '<i class="fas fa-copy me-1"></i> Copiar';
+			}, 2000);
+		});
+	});
+
+	// Enviar WhatsApp
+	window.enviarWhatsapp = function(leadId) {
+		window.location.href = `/callcenter/whatsapp/${leadId}/`;
+	};
+
+	// Exportar leads
+	window.exportarLeads = function() {
+		// Obtener filtros actuales
+		const params = new URLSearchParams(window.location.search);
+		params.append('export', 'csv');
+		window.location.href = `/callcenter/leads/export/?${params.toString()}`;
+	};
+
+	// Procesar importación
+	window.procesarImportacion = function() {
+		// TODO: Implementar lógica de importación
+		alert('Función de importación en desarrollo');
+		bootstrap.Modal.getInstance(document.getElementById('importarModal')).hide();
+	};
+});
+</script>
 {% endblock %}
