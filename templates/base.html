@@ -14,45 +14,222 @@
     
     <!-- Custom CSS -->
     <style>
-        .hero-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .service-card { transition: transform 0.3s; }
-        .service-card:hover { transform: translateY(-5px); }
-        .btn-primary { background-color: #667eea; border-color: #667eea; }
-        
-        /* Navbar y menús */
-        .navbar-nav .nav-item.active .nav-link {
-            color: #fff;
-            background: rgba(255,255,255,0.1);
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --warning-color: #f72585;
+            --info-color: #4895ef;
+            --light-bg: #f8f9fa;
+            --dark-bg: #212529;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            color: #2c3e50;
+        }
+
+        /* Navbar Moderno */
+        .navbar {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+            padding: 0.7rem 1rem;
+        }
+
+        .navbar-brand {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .navbar-dark .navbar-nav .nav-link {
+            color: rgba(255,255,255,0.9);
+            padding: 0.5rem 1rem;
             border-radius: 4px;
+            transition: all 0.3s ease;
         }
-        .navbar-nav .nav-link i {
-            width: 20px;
-            text-align: center;
-            margin-right: 4px;
+
+        .navbar-dark .navbar-nav .nav-link:hover,
+        .navbar-dark .navbar-nav .nav-link.active {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
         }
+
+        .dropdown-menu {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .dropdown-item {
+            padding: 0.6rem 1rem;
+            border-radius: 0.3rem;
+            transition: all 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--light-bg);
+            transform: translateX(5px);
+        }
+
         .dropdown-item i {
-            width: 20px;
+            width: 24px;
             text-align: center;
             margin-right: 8px;
-            color: #666;
+            color: var(--primary-color);
         }
-        .dropdown-item:hover i {
-            color: #007bff;
+
+        /* Cards y Contenedores */
+        .card {
+            border: none;
+            border-radius: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
-        
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 1.25rem 1.5rem;
+        }
+
+        /* Badges y Estados */
+        .badge {
+            padding: 0.5em 1em;
+            border-radius: 50rem;
+            font-weight: 500;
+        }
+
+        .badge-pill {
+            padding-right: 1em;
+            padding-left: 1em;
+        }
+
+        /* Botones */
+        .btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(50,50,93,.11), 0 1px 3px rgba(0,0,0,.08);
+        }
+
         /* Breadcrumbs */
         .breadcrumb {
             background: transparent;
-            padding: 0.5rem 0;
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
+            padding: 1rem 0;
+            margin: 0;
         }
-        .breadcrumb-item.active {
-            color: #666;
-        }
+
         .breadcrumb-item + .breadcrumb-item::before {
             content: "›";
-            color: #aaa;
+            color: #6c757d;
+            font-size: 1.2rem;
+            line-height: 1;
+            padding: 0 0.5rem;
+        }
+
+        .breadcrumb-item a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+
+        .breadcrumb-item.active {
+            color: #6c757d;
+        }
+
+        /* Tablas */
+        .table {
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .table thead th {
+            border-top: none;
+            background: var(--light-bg);
+            font-weight: 600;
+        }
+
+        /* Stats Cards */
+        .stats-card {
+            padding: 1.5rem;
+            border-radius: 1rem;
+            background: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .stats-card h3 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .stats-card p {
+            color: #6c757d;
+            margin: 0;
+        }
+
+        /* Animaciones */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Alerts */
+        .alert {
+            border: none;
+            border-radius: 0.5rem;
+            padding: 1rem 1.5rem;
+        }
+
+        .alert-dismissible .btn-close {
+            padding: 1.25rem;
+        }
+
+        /* Forms */
+        .form-control {
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(67,97,238,0.25);
+        }
+
+        /* Loading States */
+        .loading-spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
     
