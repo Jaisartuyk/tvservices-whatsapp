@@ -26,6 +26,14 @@ RUN pip install --upgrade pip \
 # Copy project
 COPY . /app/
 
+# Debug: List files to verify copy
+RUN echo "=== Checking callcenter files ===" && \
+    ls -la /app/callcenter/ && \
+    echo "=== Checking views files ===" && \
+    ls -la /app/callcenter/views*.py && \
+    echo "=== Checking urls.py content ===" && \
+    grep -n "whatsapp" /app/callcenter/urls.py || echo "No whatsapp found in urls.py"
+
 # Set Railway environment for static files
 ENV RAILWAY_ENVIRONMENT=production
 ENV BUILD_DATE=2025-10-30
