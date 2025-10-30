@@ -17,6 +17,15 @@ from .ai_services import CallAI
 from django.views.decorators.http import require_POST
 from django.views.decorators.http import require_GET
 
+# Importar vistas de acciones (WhatsApp, Llamadas, Email)
+from .views_actions import (
+    api_send_whatsapp,
+    api_whatsapp_webhook,
+    api_make_call,
+    api_call_webhook,
+    api_send_email
+)
+
 
 @login_required
 def dashboard(request):
@@ -434,3 +443,5 @@ def api_assign_conversation(request):
         import logging
         logging.exception('Error asignando conversación')
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+ 
+ 

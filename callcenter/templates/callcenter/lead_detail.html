@@ -573,13 +573,13 @@
                         <i class="bi bi-lightning"></i> Acciones Rápidas
                     </h3>
                     <div class="d-grid gap-2">
-                        <button class="btn btn-success-modern btn-modern">
+                        <button class="btn btn-success-modern btn-modern" onclick="makeCall({{ lead.id }})">
                             <i class="bi bi-telephone-fill"></i> Llamar Ahora
                         </button>
-                        <button class="btn btn-primary-modern btn-modern">
+                        <button class="btn btn-primary-modern btn-modern" onclick="sendWhatsApp({{ lead.id }})">
                             <i class="bi bi-whatsapp"></i> Enviar WhatsApp
                         </button>
-                        <button class="btn btn-primary-modern btn-modern">
+                        <button class="btn btn-primary-modern btn-modern" onclick="sendEmail({{ lead.id }})">
                             <i class="bi bi-envelope-fill"></i> Enviar Email
                         </button>
                         <a href="{% url 'callcenter:leads_list' %}" class="btn btn-outline-secondary btn-modern">
@@ -625,5 +625,119 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Función para obtener CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Hacer llamada
+        function makeCall(leadId) {
+            if (!confirm('¿Deseas iniciar una llamada con este lead?')) {
+                return;
+            }
+
+            fetch(`/callcenter/api/make-call/${leadId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ tipo: 'SALIENTE' })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`✅ Llamada iniciada a ${data.lead_nombre} (${data.telefono})`);
+                    location.reload();
+                } else {
+                    alert(`❌ Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error al iniciar la llamada');
+            });
+        }
+
+        // Enviar WhatsApp
+        function sendWhatsApp(leadId) {
+            const mensaje = prompt('Escribe el mensaje para WhatsApp:');
+            if (!mensaje) {
+                return;
+            }
+
+            fetch(`/callcenter/api/send-whatsapp/${leadId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ mensaje: mensaje })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`✅ Mensaje enviado a ${data.lead_nombre} (${data.telefono})`);
+                    location.reload();
+                } else {
+                    alert(`❌ Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error al enviar WhatsApp');
+            });
+        }
+
+        // Enviar Email
+        function sendEmail(leadId) {
+            const asunto = prompt('Asunto del email:');
+            if (!asunto) {
+                return;
+            }
+
+            const mensaje = prompt('Mensaje del email:');
+            if (!mensaje) {
+                return;
+            }
+
+            fetch(`/callcenter/api/send-email/${leadId}/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ 
+                    asunto: asunto,
+                    mensaje: mensaje 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`✅ Email enviado a ${data.lead_nombre} (${data.email})`);
+                    location.reload();
+                } else {
+                    alert(`❌ Error: ${data.error}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('❌ Error al enviar email');
+            });
+        }
+    </script>
 </body>
 </html>
