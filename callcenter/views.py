@@ -97,7 +97,7 @@ def dashboard(request):
         'porcentaje_cold': round((leads_cold / total_leads * 100) if total_leads > 0 else 0, 1),
     }
     
-    return render(request, 'callcenter/dashboard.html', context)
+    return render(request, 'callcenter/dashboard_modern.html', context)
 
 
 @login_required

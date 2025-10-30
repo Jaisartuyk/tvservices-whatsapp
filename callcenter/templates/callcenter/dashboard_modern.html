@@ -1,0 +1,620 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Call Center IA Ecuador 🇪🇨</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --glass: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animated {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animated::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveBackground 20s linear infinite;
+        }
+
+        @keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.5);
+        }
+
+        /* Stat Cards with Glow Effect */
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 28px;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-icon::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            opacity: 0.3;
+            filter: blur(15px);
+        }
+
+        .stat-icon.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .stat-icon.primary::after { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        
+        .stat-icon.success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .stat-icon.success::after { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        
+        .stat-icon.warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .stat-icon.warning::after { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        
+        .stat-icon.info { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .stat-icon.info::after { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+
+        /* Navbar */
+        .navbar-modern {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: white !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        /* Table Modern */
+        .table-modern {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .table-modern thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .table-modern tbody tr {
+            transition: all 0.3s;
+        }
+
+        .table-modern tbody tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+            transform: scale(1.01);
+        }
+
+        /* Badge Modern */
+        .badge-modern {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-hot {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            animation: pulse 2s infinite;
+        }
+
+        .badge-warm {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .badge-cold {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Progress Bar Modern */
+        .progress-modern {
+            height: 8px;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .progress-modern .progress-bar {
+            border-radius: 10px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            animation: progressAnimation 2s ease-in-out;
+        }
+
+        @keyframes progressAnimation {
+            0% { width: 0; }
+        }
+
+        /* Button Modern */
+        .btn-modern {
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary-modern {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* Glow Text */
+        .glow-text {
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .stat-card {
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Sidebar Modern (if needed) */
+        .sidebar-modern {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 250px;
+            padding-top: 80px;
+        }
+
+        /* Card Header Modern */
+        .card-header-modern {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        /* Tooltip Modern */
+        .tooltip-modern {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip-modern .tooltiptext {
+            visibility: hidden;
+            background-color: rgba(0, 0, 0, 0.9);
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -60px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip-modern:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animated"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-modern navbar-expand-lg">
+        <div class="container-fluid px-4">
+            <span class="navbar-brand glow-text float-animation">
+                <i class="bi bi-robot"></i> Call Center IA - Ecuador 🇪🇨
+            </span>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-white"><i class="bi bi-person-circle"></i> {{ user.username }}</span>
+                <a href="{% url 'admin:index' %}" class="btn btn-sm btn-light btn-modern">
+                    <i class="bi bi-gear-fill"></i> Admin
+                </a>
+                <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-light btn-modern">
+                    <i class="bi bi-box-arrow-right"></i> Salir
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 py-4">
+        <!-- Estadísticas Principales -->
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2 fw-semibold">Total Leads</p>
+                            <h2 class="mb-0 fw-bold">{{ total_leads }}</h2>
+                            <small class="text-success"><i class="bi bi-arrow-up"></i> +12% este mes</small>
+                        </div>
+                        <div class="stat-icon primary">
+                            <i class="bi bi-people-fill text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2 fw-semibold">Leads HOT 🔥</p>
+                            <h2 class="mb-0 fw-bold text-danger">{{ leads_hot }}</h2>
+                            <small class="text-muted">{{ porcentaje_hot }}% del total</small>
+                        </div>
+                        <div class="stat-icon success">
+                            <i class="bi bi-fire text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2 fw-semibold">Ventas del Mes</p>
+                            <h2 class="mb-0 fw-bold text-success">{{ ventas_mes }}</h2>
+                            <small class="text-success">${{ ingresos_mes|floatformat:2 }}</small>
+                        </div>
+                        <div class="stat-icon warning">
+                            <i class="bi bi-cash-stack text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2 fw-semibold">Score Promedio</p>
+                            <h2 class="mb-0 fw-bold text-info">{{ score_promedio }}/100</h2>
+                            <div class="progress-modern mt-2">
+                                <div class="progress-bar" style="width: {{ score_promedio }}%"></div>
+                            </div>
+                        </div>
+                        <div class="stat-icon info">
+                            <i class="bi bi-star-fill text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-pie-chart-fill text-primary"></i> Distribución de Leads</h5>
+                    <canvas id="leadsChart" height="250"></canvas>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h5 class="fw-bold mb-4"><i class="bi bi-bar-chart-fill text-success"></i> Leads por Operador</h5>
+                    <canvas id="operadorChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Leads Recientes -->
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="table-modern">
+                    <div class="card-header-modern d-flex justify-content-between align-items-center">
+                        <span><i class="bi bi-person-lines-fill"></i> Leads Recientes</span>
+                        <a href="{% url 'callcenter:leads_list' %}" class="btn btn-sm btn-light btn-modern">
+                            Ver Todos <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Teléfono</th>
+                                    <th>Zona</th>
+                                    <th>Interés</th>
+                                    <th>Score</th>
+                                    <th>Clasificación</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lead in leads_recientes %}
+                                <tr>
+                                    <td class="fw-semibold">{{ lead.nombre }} {{ lead.apellido }}</td>
+                                    <td><i class="bi bi-telephone-fill text-primary"></i> {{ lead.telefono }}</td>
+                                    <td><i class="bi bi-geo-alt-fill text-danger"></i> {{ lead.zona }}</td>
+                                    <td>
+                                        {% if lead.producto_interes %}
+                                            <span class="badge bg-info">{{ lead.producto_interes.nombre_plan }}</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Sin definir</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="fw-bold">{{ lead.score }}</span>
+                                            <div class="progress-modern" style="width: 60px;">
+                                                <div class="progress-bar" style="width: {{ lead.score }}%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if lead.clasificacion == 'HOT' %}
+                                            <span class="badge badge-modern badge-hot">🔥 HOT</span>
+                                        {% elif lead.clasificacion == 'WARM' %}
+                                            <span class="badge badge-modern badge-warm">🌡️ WARM</span>
+                                        {% else %}
+                                            <span class="badge badge-modern badge-cold">❄️ COLD</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'callcenter:lead_detail' lead.id %}" class="btn btn-sm btn-primary-modern">
+                                            <i class="bi bi-eye-fill"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-4">
+                                        <i class="bi bi-inbox fs-1 text-muted"></i>
+                                        <p class="text-muted mt-2">No hay leads registrados</p>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Gráfico de Distribución de Leads
+        const leadsCtx = document.getElementById('leadsChart').getContext('2d');
+        new Chart(leadsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['🔥 HOT', '🌡️ WARM', '❄️ COLD'],
+                datasets: [{
+                    data: [{{ leads_hot }}, {{ leads_warm }}, {{ leads_cold }}],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(59, 130, 246, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(239, 68, 68, 1)',
+                        'rgba(245, 158, 11, 1)',
+                        'rgba(59, 130, 246, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 14,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Leads por Operador
+        const operadorCtx = document.getElementById('operadorChart').getContext('2d');
+        new Chart(operadorCtx, {
+            type: 'bar',
+            data: {
+                labels: [{% for item in leads_por_operador %}'{{ item.operador_interes__nombre }}'{% if not forloop.last %}, {% endif %}{% endfor %}],
+                datasets: [{
+                    label: 'Leads',
+                    data: [{% for item in leads_por_operador %}{{ item.total }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2,
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
