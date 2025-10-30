@@ -20,3 +20,14 @@ def test_view(request):
 def test_whatsapp(request, conversacion_id):
     """Test que simula la vista de whatsapp"""
     return HttpResponse(f"TEST WHATSAPP VIEW WORKS - conversacion_id: {conversacion_id}")
+
+
+def test_whatsapp_real(request, conversacion_id):
+    """Test que llama a la vista real de whatsapp"""
+    from . import views_whatsapp
+    try:
+        # Llamar a la vista real sin el decorador
+        response = views_whatsapp.whatsapp_detail.__wrapped__(request, conversacion_id)
+        return HttpResponse(f"Real whatsapp view returned: {type(response).__name__}")
+    except Exception as e:
+        return HttpResponse(f"Error calling real view: {str(e)}")
