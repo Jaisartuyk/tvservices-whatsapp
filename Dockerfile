@@ -28,6 +28,7 @@ COPY . /app/
 
 # Set Railway environment for static files
 ENV RAILWAY_ENVIRONMENT=production
+ENV BUILD_DATE=2025-10-30
 
 # Make script executable
 RUN chmod +x railway_init.sh
