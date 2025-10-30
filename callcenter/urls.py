@@ -39,6 +39,7 @@ urlpatterns = [
     
     # Test view
     path('test/', views_test.test_view, name='test_view'),
+    path('test-whatsapp/<int:conversacion_id>/', views_test.test_whatsapp, name='test_whatsapp'),
     
     # WhatsApp Detail
     path('whatsapp/<int:conversacion_id>/', views_whatsapp.whatsapp_detail, name='whatsapp_detail'),

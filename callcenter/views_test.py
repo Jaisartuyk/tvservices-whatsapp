@@ -15,3 +15,8 @@ def test_view(request):
         whatsapp_detail = "N/A"
     
     return HttpResponse(f"TEST VIEW WORKS - Build: 2025-10-30-16:08<br>views_whatsapp imported: {has_whatsapp}<br>has whatsapp_detail: {whatsapp_detail}")
+
+
+def test_whatsapp(request, conversacion_id):
+    """Test que simula la vista de whatsapp"""
+    return HttpResponse(f"TEST WHATSAPP VIEW WORKS - conversacion_id: {conversacion_id}")
