@@ -4,6 +4,7 @@ URLs para el Call Center IA
 from django.urls import path
 from . import views
 from . import views_actions
+from . import views_dashboards
 
 app_name = 'callcenter'
 
@@ -27,8 +28,8 @@ urlpatterns = [
     path('api/recent-conversations/', views.api_recent_conversations, name='api_recent_conversations'),
     path('api/assign-conversation/', views.api_assign_conversation, name='api_assign_conversation'),
     # Dashboards específicos
-    path('whatsapp-dashboard/', views.whatsapp_dashboard, name='whatsapp_dashboard'),
-    path('calls-dashboard/', views.calls_dashboard, name='calls_dashboard'),
+    path('whatsapp-dashboard/', views_dashboards.whatsapp_dashboard, name='whatsapp_dashboard'),
+    path('calls-dashboard/', views_dashboards.calls_dashboard, name='calls_dashboard'),
     
     # WhatsApp Actions
     path('api/send-whatsapp/<int:lead_id>/', views_actions.api_send_whatsapp, name='api_send_whatsapp'),
