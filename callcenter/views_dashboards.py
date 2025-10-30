@@ -96,16 +96,17 @@ def calls_dashboard(request):
     # Llamadas recientes (últimas 50)
     llamadas = LlamadaIA.objects.select_related(
         'lead',
-        'agente_humano'
+        'conversacion',
+        'conversacion__agente_humano'
     ).order_by('-created_at')[:50]
     
-    # Llamadas por agente
+    # Llamadas por agente (a través de conversación)
     llamadas_por_agente = LlamadaIA.objects.filter(
-        agente_humano__isnull=False
+        conversacion__agente_humano__isnull=False
     ).values(
-        'agente_humano__username',
-        'agente_humano__first_name',
-        'agente_humano__last_name'
+        'conversacion__agente_humano__username',
+        'conversacion__agente_humano__first_name',
+        'conversacion__agente_humano__last_name'
     ).annotate(
         total=Count('id')
     ).order_by('-total')[:10]
