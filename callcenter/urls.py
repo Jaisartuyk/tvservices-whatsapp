@@ -6,6 +6,7 @@ from . import views
 from . import views_actions
 from . import views_dashboards
 from . import views_import
+from . import views_update
 
 app_name = 'callcenter'
 
@@ -16,7 +17,7 @@ urlpatterns = [
     # Leads
     path('leads/', views.leads_list, name='leads_list'),
     path('leads/<int:lead_id>/', views.lead_detail, name='lead_detail'),
-    path('leads/<int:lead_id>/update/', views.update_lead, name='update_lead'),
+    path('leads/<int:lead_id>/update/', views_update.update_lead, name='update_lead'),
     path('leads/import/', views_import.import_leads, name='import_leads'),
     
     # Productos
