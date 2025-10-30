@@ -220,7 +220,7 @@ def lead_detail(request, lead_id):
     operadores = Operador.objects.filter(is_active=True).order_by('nombre')
     
     # Todos los productos para el modal de edicion
-    todos_productos = Producto.objects.filter(is_active=True).order_by('operador__nombre', 'nombre')
+    todos_productos = Producto.objects.filter(is_active=True).order_by('operador__nombre', 'nombre_plan')
     
     context = {
         'lead': lead,

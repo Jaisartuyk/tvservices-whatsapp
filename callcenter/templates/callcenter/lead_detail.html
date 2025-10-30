@@ -685,7 +685,7 @@
                                     <option value="">Ninguno</option>
                                     {% for producto in todos_productos %}
                                     <option value="{{ producto.id }}" {% if lead.producto_interes and lead.producto_interes.id == producto.id %}selected{% endif %}>
-                                        {{ producto.operador.nombre }} - {{ producto.nombre }} ({{ producto.get_tipo_display }})
+                                        {{ producto.operador.nombre }} - {{ producto.nombre_plan }} ({{ producto.get_tipo_display }})
                                     </option>
                                     {% endfor %}
                                 </select>
