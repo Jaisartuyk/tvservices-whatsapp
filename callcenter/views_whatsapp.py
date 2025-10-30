@@ -7,6 +7,9 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from .models import Conversacion, Lead
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
