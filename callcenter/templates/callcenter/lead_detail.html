@@ -1,5 +1,629 @@
-{% extends 'callcenter/dashboard.html' %}
-{% block content %}
-<h2>Detalle del Lead</h2>
-<p>Página en construcción...</p>
-{% endblock %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com;">
+    <title>Lead: {{ lead.nombre }} {{ lead.apellido }} - Call Center IA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* Animated Background */
+        .bg-animated {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .bg-animated::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: moveBackground 20s linear infinite;
+        }
+
+        @keyframes moveBackground {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        /* Navbar */
+        .navbar-modern {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: white !important;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        /* Lead Header */
+        .lead-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .lead-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 10s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .lead-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .score-number {
+            font-size: 36px;
+            font-weight: 800;
+            color: #667eea;
+        }
+
+        .score-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        /* Badge Modern */
+        .badge-modern {
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-hot {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            animation: pulse 2s infinite;
+        }
+
+        .badge-warm {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .badge-cold {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* Info Grid */
+        .info-item {
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .info-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .info-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px;
+        }
+
+        .info-icon.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .info-icon.success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+        .info-icon.warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; }
+        .info-icon.danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; }
+        .info-icon.info { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-bottom: 30px;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -32px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 3px solid #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.2);
+        }
+
+        .timeline-content {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Product Card */
+        .product-card {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+            height: 100%;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .product-badge.destacado {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: white;
+        }
+
+        /* Button Modern */
+        .btn-modern {
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-weight: 600;
+            border: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary-modern {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success-modern {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-danger-modern {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title i {
+            color: #667eea;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animated"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-modern navbar-expand-lg">
+        <div class="container-fluid px-4">
+            <a href="{% url 'callcenter:dashboard' %}" class="navbar-brand">
+                <i class="bi bi-arrow-left-circle"></i> Volver al Dashboard
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-white"><i class="bi bi-person-circle"></i> {{ user.username }}</span>
+                <a href="{% url 'logout' %}" class="btn btn-sm btn-outline-light btn-modern">
+                    <i class="bi bi-box-arrow-right"></i> Salir
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid px-4 py-4">
+        <!-- Lead Header -->
+        <div class="lead-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center gap-4">
+                        <div class="lead-avatar">
+                            {{ lead.nombre|first }}{{ lead.apellido|first }}
+                        </div>
+                        <div>
+                            <h1 class="mb-2">{{ lead.nombre }} {{ lead.apellido }}</h1>
+                            <div class="d-flex gap-2 flex-wrap">
+                                {% if lead.clasificacion == 'HOT' %}
+                                    <span class="badge badge-modern badge-hot">🔥 HOT LEAD</span>
+                                {% elif lead.clasificacion == 'WARM' %}
+                                    <span class="badge badge-modern badge-warm">🌡️ WARM LEAD</span>
+                                {% else %}
+                                    <span class="badge badge-modern badge-cold">❄️ COLD LEAD</span>
+                                {% endif %}
+                                <span class="badge bg-light text-dark">{{ lead.get_estado_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 text-end">
+                    <div class="d-flex justify-content-end align-items-center gap-3">
+                        <div class="score-circle">
+                            <div class="score-number">{{ lead.score }}</div>
+                            <div class="score-label">SCORE</div>
+                        </div>
+                        <div class="text-start">
+                            <small class="d-block opacity-75">Creado: {{ lead.created_at|date:"d/m/Y H:i" }}</small>
+                            <small class="d-block opacity-75">Actualizado: {{ lead.updated_at|date:"d/m/Y H:i" }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Información del Lead -->
+            <div class="col-lg-8">
+                <div class="glass-card">
+                    <h3 class="section-title">
+                        <i class="bi bi-person-badge"></i> Información del Lead
+                    </h3>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="info-icon primary">
+                                        <i class="bi bi-telephone-fill"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Teléfono</small>
+                                        <strong>{{ lead.telefono }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="info-icon success">
+                                        <i class="bi bi-envelope-fill"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Email</small>
+                                        <strong>{{ lead.email|default:"No registrado" }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="info-icon warning">
+                                        <i class="bi bi-geo-alt-fill"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Zona</small>
+                                        <strong>{{ lead.zona }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="info-icon danger">
+                                        <i class="bi bi-building"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Operador de Interés</small>
+                                        <strong>{{ lead.operador_interes.nombre|default:"No definido" }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="info-icon info">
+                                        <i class="bi bi-wifi"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Tipo de Servicio</small>
+                                        <strong>{{ lead.get_tipo_servicio_interes_display|default:"No definido" }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="d-flex align-items-center">
+                                    <div class="info-icon primary">
+                                        <i class="bi bi-box-seam"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted d-block">Producto de Interés</small>
+                                        <strong>{{ lead.producto_interes.nombre_plan|default:"No definido" }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if lead.notas %}
+                    <div class="mt-4">
+                        <h5><i class="bi bi-sticky"></i> Notas</h5>
+                        <div class="alert alert-info">
+                            {{ lead.notas }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Historial de Conversaciones -->
+                <div class="glass-card">
+                    <h3 class="section-title">
+                        <i class="bi bi-chat-dots"></i> Historial de Conversaciones
+                    </h3>
+                    
+                    {% if conversaciones %}
+                    <div class="timeline">
+                        {% for conv in conversaciones %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <strong>{{ conv.get_canal_display }}</strong>
+                                        <small class="text-muted ms-2">{{ conv.created_at|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                    <span class="badge bg-{{ conv.sentimiento|default:'secondary' }}">
+                                        {{ conv.get_sentimiento_display|default:"Sin análisis" }}
+                                    </span>
+                                </div>
+                                <p class="mb-0">{{ conv.mensaje }}</p>
+                                {% if conv.respuesta %}
+                                <div class="mt-2 p-2 bg-light rounded">
+                                    <small class="text-muted">Respuesta:</small>
+                                    <p class="mb-0">{{ conv.respuesta }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-chat-square-text"></i>
+                        <p>No hay conversaciones registradas</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Historial de Llamadas -->
+                <div class="glass-card">
+                    <h3 class="section-title">
+                        <i class="bi bi-telephone"></i> Historial de Llamadas
+                    </h3>
+                    
+                    {% if llamadas %}
+                    <div class="timeline">
+                        {% for llamada in llamadas %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot"></div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <strong>Llamada {{ llamada.get_tipo_display }}</strong>
+                                        <small class="text-muted ms-2">{{ llamada.created_at|date:"d/m/Y H:i" }}</small>
+                                    </div>
+                                    <span class="badge bg-{{ llamada.resultado|default:'secondary' }}">
+                                        {{ llamada.get_resultado_display|default:"Pendiente" }}
+                                    </span>
+                                </div>
+                                {% if llamada.duracion %}
+                                <p class="mb-1"><strong>Duración:</strong> {{ llamada.duracion }} segundos</p>
+                                {% endif %}
+                                {% if llamada.transcripcion %}
+                                <p class="mb-0">{{ llamada.transcripcion }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-telephone-x"></i>
+                        <p>No hay llamadas registradas</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Acciones Rápidas -->
+                <div class="glass-card">
+                    <h3 class="section-title">
+                        <i class="bi bi-lightning"></i> Acciones Rápidas
+                    </h3>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success-modern btn-modern">
+                            <i class="bi bi-telephone-fill"></i> Llamar Ahora
+                        </button>
+                        <button class="btn btn-primary-modern btn-modern">
+                            <i class="bi bi-whatsapp"></i> Enviar WhatsApp
+                        </button>
+                        <button class="btn btn-primary-modern btn-modern">
+                            <i class="bi bi-envelope-fill"></i> Enviar Email
+                        </button>
+                        <a href="{% url 'callcenter:leads_list' %}" class="btn btn-outline-secondary btn-modern">
+                            <i class="bi bi-arrow-left"></i> Volver a Leads
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Productos Sugeridos -->
+                <div class="glass-card">
+                    <h3 class="section-title">
+                        <i class="bi bi-box-seam"></i> Productos Sugeridos
+                    </h3>
+                    
+                    {% if productos_sugeridos %}
+                        {% for producto in productos_sugeridos %}
+                        <div class="product-card mb-3">
+                            {% if producto.is_destacado %}
+                            <span class="product-badge destacado">⭐ Destacado</span>
+                            {% endif %}
+                            <h5 class="mb-2">{{ producto.nombre_plan }}</h5>
+                            <p class="text-muted small mb-2">{{ producto.operador.nombre }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong class="text-primary fs-4">${{ producto.precio_mensual }}</strong>
+                                    <small class="text-muted">/mes</small>
+                                </div>
+                                <button class="btn btn-sm btn-primary-modern">
+                                    <i class="bi bi-plus-circle"></i> Ofrecer
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>No hay productos disponibles</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
