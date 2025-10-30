@@ -8,6 +8,7 @@ from . import views_dashboards
 from . import views_import
 from . import views_update
 from . import views_whatsapp
+from . import views_test
 
 app_name = 'callcenter'
 
@@ -35,6 +36,9 @@ urlpatterns = [
     # Dashboards específicos
     path('whatsapp-dashboard/', views_dashboards.whatsapp_dashboard, name='whatsapp_dashboard'),
     path('calls-dashboard/', views_dashboards.calls_dashboard, name='calls_dashboard'),
+    
+    # Test view
+    path('test/', views_test.test_view, name='test_view'),
     
     # WhatsApp Detail
     path('whatsapp/<int:conversacion_id>/', views_whatsapp.whatsapp_detail, name='whatsapp_detail'),
