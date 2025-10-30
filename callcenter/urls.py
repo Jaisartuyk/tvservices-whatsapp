@@ -16,6 +16,10 @@ urlpatterns = [
     # Dashboard
     path('', views.dashboard, name='dashboard'),
     
+    # WhatsApp Detail (MOVED TO TOP)
+    path('whatsapp/<int:conversacion_id>/', views_whatsapp.whatsapp_detail, name='whatsapp_detail'),
+    path('whatsapp/<int:conversacion_id>/reply/', views_whatsapp.whatsapp_reply, name='whatsapp_reply'),
+    
     # Leads
     path('leads/', views.leads_list, name='leads_list'),
     path('leads/<int:lead_id>/', views.lead_detail, name='lead_detail'),
@@ -40,10 +44,6 @@ urlpatterns = [
     # Test view
     path('test/', views_test.test_view, name='test_view'),
     path('test-whatsapp/<int:conversacion_id>/', views_test.test_whatsapp, name='test_whatsapp'),
-    
-    # WhatsApp Detail
-    path('whatsapp/<int:conversacion_id>/', views_whatsapp.whatsapp_detail, name='whatsapp_detail'),
-    path('whatsapp/<int:conversacion_id>/reply/', views_whatsapp.whatsapp_reply, name='whatsapp_reply'),
     
     # WhatsApp Actions
     path('api/send-whatsapp/<int:lead_id>/', views_actions.api_send_whatsapp, name='api_send_whatsapp'),
