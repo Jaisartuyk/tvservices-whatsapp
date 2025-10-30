@@ -114,10 +114,10 @@ def calls_dashboard(request):
     # Duración promedio (solo llamadas con duración)
     from django.db.models import Avg
     duracion_promedio = LlamadaIA.objects.filter(
-        duracion__isnull=False,
-        duracion__gt=0
+        duracion_segundos__isnull=False,
+        duracion_segundos__gt=0
     ).aggregate(
-        promedio=Avg('duracion')
+        promedio=Avg('duracion_segundos')
     )['promedio'] or 0
     
     # Llamadas por día (últimos 7 días)
