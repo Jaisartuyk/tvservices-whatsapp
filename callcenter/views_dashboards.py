@@ -83,11 +83,14 @@ def calls_dashboard(request):
     llamadas_exitosas = LlamadaIA.objects.filter(
         resultado='EXITOSA'
     ).count()
-    llamadas_no_contesto = LlamadaIA.objects.filter(
-        resultado='NO_CONTESTO'
+    llamadas_no_contesta = LlamadaIA.objects.filter(
+        resultado='NO_CONTESTA'
     ).count()
     llamadas_ocupado = LlamadaIA.objects.filter(
         resultado='OCUPADO'
+    ).count()
+    llamadas_buzon = LlamadaIA.objects.filter(
+        resultado='BUZON'
     ).count()
     
     # Llamadas recientes (últimas 50)
@@ -137,8 +140,9 @@ def calls_dashboard(request):
         'llamadas_entrantes': llamadas_entrantes,
         'llamadas_salientes': llamadas_salientes,
         'llamadas_exitosas': llamadas_exitosas,
-        'llamadas_no_contesto': llamadas_no_contesto,
+        'llamadas_no_contesta': llamadas_no_contesta,
         'llamadas_ocupado': llamadas_ocupado,
+        'llamadas_buzon': llamadas_buzon,
         'llamadas': llamadas,
         'llamadas_por_agente': llamadas_por_agente,
         'duracion_promedio': round(duracion_promedio, 2),
