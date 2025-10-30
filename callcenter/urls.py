@@ -3,6 +3,7 @@ URLs para el Call Center IA
 """
 from django.urls import path
 from . import views
+from . import views_actions
 
 app_name = 'callcenter'
 
@@ -30,13 +31,13 @@ urlpatterns = [
     path('calls-dashboard/', views.calls_dashboard, name='calls_dashboard'),
     
     # WhatsApp Actions
-    path('api/send-whatsapp/<int:lead_id>/', views.api_send_whatsapp, name='api_send_whatsapp'),
-    path('api/whatsapp-webhook/', views.api_whatsapp_webhook, name='api_whatsapp_webhook'),
+    path('api/send-whatsapp/<int:lead_id>/', views_actions.api_send_whatsapp, name='api_send_whatsapp'),
+    path('api/whatsapp-webhook/', views_actions.api_whatsapp_webhook, name='api_whatsapp_webhook'),
     
     # Call Actions
-    path('api/make-call/<int:lead_id>/', views.api_make_call, name='api_make_call'),
-    path('api/call-webhook/', views.api_call_webhook, name='api_call_webhook'),
+    path('api/make-call/<int:lead_id>/', views_actions.api_make_call, name='api_make_call'),
+    path('api/call-webhook/', views_actions.api_call_webhook, name='api_call_webhook'),
     
     # Email Actions
-    path('api/send-email/<int:lead_id>/', views.api_send_email, name='api_send_email'),
+    path('api/send-email/<int:lead_id>/', views_actions.api_send_email, name='api_send_email'),
 ]
