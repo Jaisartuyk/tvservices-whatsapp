@@ -17,7 +17,7 @@ def update_lead(request, lead_id):
         lead = get_object_or_404(Lead, id=lead_id)
         data = json.loads(request.body)
         
-        # Actualizar campos
+        # Actualizar campos basicos
         lead.nombre = data.get('nombre', lead.nombre)
         lead.apellido = data.get('apellido', lead.apellido)
         lead.telefono = data.get('telefono', lead.telefono)
@@ -30,6 +30,28 @@ def update_lead(request, lead_id):
         lead.presupuesto_estimado = data.get('presupuesto_estimado') or None
         lead.score = int(data.get('score', lead.score))
         lead.notas = data.get('notas', lead.notas)
+        
+        # Actualizar operador de interes
+        operador_id = data.get('operador_interes_id')
+        if operador_id:
+            from .models import Operador
+            try:
+                lead.operador_interes = Operador.objects.get(id=operador_id)
+            except Operador.DoesNotExist:
+                pass
+        else:
+            lead.operador_interes = None
+        
+        # Actualizar producto de interes
+        producto_id = data.get('producto_interes_id')
+        if producto_id:
+            from .models import Producto
+            try:
+                lead.producto_interes = Producto.objects.get(id=producto_id)
+            except Producto.DoesNotExist:
+                pass
+        else:
+            lead.producto_interes = None
         
         lead.save()
         

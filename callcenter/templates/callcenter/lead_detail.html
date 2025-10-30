@@ -668,6 +668,24 @@
                                 <label class="form-label">Zona *</label>
                                 <input type="text" class="form-control" id="edit_zona" name="zona" value="{{ lead.zona }}" required>
                             </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Operador de Interés</label>
+                                <select class="form-select" id="edit_operador" name="operador_interes_id">
+                                    <option value="">Ninguno</option>
+                                    {% for operador in operadores %}
+                                    <option value="{{ operador.id }}" {% if lead.operador_interes.id == operador.id %}selected{% endif %}>{{ operador.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Producto de Interés</label>
+                                <select class="form-select" id="edit_producto" name="producto_interes_id">
+                                    <option value="">Ninguno</option>
+                                    {% for producto in productos_sugeridos %}
+                                    <option value="{{ producto.id }}" {% if lead.producto_interes.id == producto.id %}selected{% endif %}>{{ producto.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                             
                             <!-- Información Comercial -->
                             <div class="col-12 mt-4">
