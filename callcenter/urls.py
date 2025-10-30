@@ -5,6 +5,7 @@ from django.urls import path
 from . import views
 from . import views_actions
 from . import views_dashboards
+from . import views_import
 
 app_name = 'callcenter'
 
@@ -15,6 +16,7 @@ urlpatterns = [
     # Leads
     path('leads/', views.leads_list, name='leads_list'),
     path('leads/<int:lead_id>/', views.lead_detail, name='lead_detail'),
+    path('leads/import/', views_import.import_leads, name='import_leads'),
     
     # Productos
     path('productos/', views.productos_list, name='productos_list'),

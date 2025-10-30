@@ -1,0 +1,11 @@
+nombre,apellido,telefono,email,zona,operador,tipo_servicio,presupuesto,notas
+Juan,Pérez,0998765432,juan.perez@email.com,Norte de Guayaquil,Claro,INTERNET,50.00,Cliente interesado en fibra óptica 100MB
+María,González,0987654321,maria.gonzalez@email.com,Centro,Movistar,COMBO,80.00,Quiere internet + TV + teléfono
+Carlos,Rodríguez,0976543210,,Sur,CNT,MOVIL,30.00,Solo plan móvil con datos ilimitados
+Ana,Martínez,0965432109,ana.martinez@email.com,Norte de Quito,,INTERNET,45.00,Preguntó por planes empresariales
+Pedro,López,0954321098,pedro.lopez@email.com,Este,Claro,TV,25.00,Interesado en canales premium y deportes
+Lucía,Fernández,0943210987,lucia.fernandez@email.com,Oeste,Movistar,INTERNET,60.00,Necesita internet para trabajo remoto
+Roberto,Sánchez,0932109876,,Centro Histórico,CNT,COMBO,70.00,Familia de 5 personas
+Carmen,Torres,0921098765,carmen.torres@email.com,La Puntilla,Claro,MOVIL,35.00,Quiere cambiar de operador
+Diego,Ramírez,0910987654,diego.ramirez@email.com,Samborondón,,TV,40.00,Solo canales de películas y series
+Elena,Castro,0909876543,elena.castro@email.com,Urdesa,Movistar,INTERNET,55.00,Cliente corporativo - oficina pequeña

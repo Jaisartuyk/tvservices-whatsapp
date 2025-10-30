@@ -323,19 +323,27 @@
 				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 			</div>
 			<div class="modal-body">
-				<form id="importForm">
+				<form id="importForm" enctype="multipart/form-data">
 					<div class="mb-3">
 						<label class="form-label">Archivo CSV/Excel</label>
-						<input type="file" class="form-control" accept=".csv,.xlsx" required>
+						<input type="file" id="fileInput" name="file" class="form-control" accept=".csv,.xlsx" required>
+						<div class="form-text">Formatos: CSV o Excel (.xlsx). Máximo 1000 leads.</div>
 					</div>
 					<div class="mb-3">
-						<label class="form-label">Operador por defecto</label>
-						<select class="form-select">
-							<option value="">Seleccionar...</option>
+						<label class="form-label">Operador por defecto (opcional)</label>
+						<select id="operadorInput" name="operador_id" class="form-select">
+							<option value="">Ninguno</option>
 							{% for op in operadores %}
 							<option value="{{ op.id }}">{{ op.nombre }}</option>
 							{% endfor %}
 						</select>
+						<div class="form-text">Se usará si el archivo no especifica operador</div>
+					</div>
+					<div id="importProgress" class="d-none">
+						<div class="progress">
+							<div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%"></div>
+						</div>
+						<p class="text-center mt-2 mb-0">Procesando archivo...</p>
 					</div>
 				</form>
 			</div>
@@ -437,11 +445,81 @@ document.addEventListener('DOMContentLoaded', function() {
 	};
 
 	// Procesar importación
-	window.procesarImportacion = function() {
-		// TODO: Implementar lógica de importación
-		alert('Función de importación en desarrollo');
-		bootstrap.Modal.getInstance(document.getElementById('importarModal')).hide();
+	window.procesarImportacion = async function() {
+		const fileInput = document.getElementById('fileInput');
+		const operadorInput = document.getElementById('operadorInput');
+		const progressDiv = document.getElementById('importProgress');
+		
+		// Validar archivo
+		if (!fileInput.files || !fileInput.files[0]) {
+			alert('Por favor seleccione un archivo');
+			return;
+		}
+		
+		// Mostrar progreso
+		progressDiv.classList.remove('d-none');
+		
+		// Preparar FormData
+		const formData = new FormData();
+		formData.append('file', fileInput.files[0]);
+		if (operadorInput.value) {
+			formData.append('operador_id', operadorInput.value);
+		}
+		
+		try {
+			const response = await fetch('/callcenter/leads/import/', {
+				method: 'POST',
+				headers: {
+					'X-CSRFToken': getCookie('csrftoken')
+				},
+				body: formData
+			});
+			
+			const data = await response.json();
+			
+			// Ocultar progreso
+			progressDiv.classList.add('d-none');
+			
+			if (data.success) {
+				let mensaje = `✅ Importación exitosa!\n\n`;
+				mensaje += `📊 Leads creados: ${data.leads_creados}\n`;
+				mensaje += `📋 Total procesados: ${data.total_procesados}\n`;
+				if (data.leads_duplicados > 0) {
+					mensaje += `⚠️ Duplicados (no importados): ${data.leads_duplicados}\n`;
+				}
+				if (data.errores && data.errores.length > 0) {
+					mensaje += `\n❌ Errores:\n${data.errores.join('\n')}`;
+				}
+				alert(mensaje);
+				
+				// Cerrar modal y recargar
+				bootstrap.Modal.getInstance(document.getElementById('importarModal')).hide();
+				location.reload();
+			} else {
+				alert(`❌ Error: ${data.error}`);
+			}
+		} catch (error) {
+			progressDiv.classList.add('d-none');
+			console.error('Error:', error);
+			alert('❌ Error al procesar el archivo');
+		}
 	};
+	
+	// Función para obtener CSRF token
+	function getCookie(name) {
+		let cookieValue = null;
+		if (document.cookie && document.cookie !== '') {
+			const cookies = document.cookie.split(';');
+			for (let i = 0; i < cookies.length; i++) {
+				const cookie = cookies[i].trim();
+				if (cookie.substring(0, name.length + 1) === (name + '=')) {
+					cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+					break;
+				}
+			}
+		}
+		return cookieValue;
+	}
 });
 </script>
 {% endblock %}
