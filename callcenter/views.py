@@ -216,11 +216,19 @@ def lead_detail(request, lead_id):
             is_destacado=True
         )[:5]
     
+    # Todos los operadores para el modal de edicion
+    operadores = Operador.objects.filter(is_active=True).order_by('nombre')
+    
+    # Todos los productos para el modal de edicion
+    todos_productos = Producto.objects.filter(is_active=True).order_by('operador__nombre', 'nombre')
+    
     context = {
         'lead': lead,
         'conversaciones': conversaciones,
         'llamadas': llamadas,
         'productos_sugeridos': productos_sugeridos,
+        'operadores': operadores,
+        'todos_productos': todos_productos,
     }
     
     return render(request, 'callcenter/lead_detail.html', context)

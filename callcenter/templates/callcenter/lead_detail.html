@@ -673,7 +673,9 @@
                                 <select class="form-select" id="edit_operador" name="operador_interes_id">
                                     <option value="">Ninguno</option>
                                     {% for operador in operadores %}
-                                    <option value="{{ operador.id }}" {% if lead.operador_interes.id == operador.id %}selected{% endif %}>{{ operador.nombre }}</option>
+                                    <option value="{{ operador.id }}" {% if lead.operador_interes and lead.operador_interes.id == operador.id %}selected{% endif %}>
+                                        {{ operador.nombre }}
+                                    </option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -681,8 +683,10 @@
                                 <label class="form-label">Producto de Interés</label>
                                 <select class="form-select" id="edit_producto" name="producto_interes_id">
                                     <option value="">Ninguno</option>
-                                    {% for producto in productos_sugeridos %}
-                                    <option value="{{ producto.id }}" {% if lead.producto_interes.id == producto.id %}selected{% endif %}>{{ producto.nombre }}</option>
+                                    {% for producto in todos_productos %}
+                                    <option value="{{ producto.id }}" {% if lead.producto_interes and lead.producto_interes.id == producto.id %}selected{% endif %}>
+                                        {{ producto.operador.nombre }} - {{ producto.nombre }} ({{ producto.get_tipo_display }})
+                                    </option>
                                     {% endfor %}
                                 </select>
                             </div>
